@@ -1,0 +1,16 @@
+*.vo
+*.glob
+*.o
+*.a
+*.cmi
+*.cmo
+*.cmx
+*.cma
+*.cmxa
+.*.aux
+*.cmti
+*.cmt
+
+_build/
+*.native
+*.byte
