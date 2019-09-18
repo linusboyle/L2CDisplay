@@ -7,7 +7,7 @@ Inductive display: Set :=
   | Hstack: display -> display -> display
 .
 
-Definition dual_btn_horizontal := Hstack (Button "hello1") (Button "hello2").
+Example dual_btn_horizontal := Hstack (Button "hello1") (Button "hello2").
 
 Fixpoint btn_to_label (model: display) {struct model} : display := 
   match model with

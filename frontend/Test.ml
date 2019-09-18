@@ -31,7 +31,7 @@ let () =
         | Vstack (dis1,dis2) -> 
                 fprintf std_formatter "a vstack layout which contains:\n"; print_display dis1; print_display dis2
     in
-    let parsed = toDisplay doc#root in
+    let parsed = parse_display doc#root in
     match parsed with
     | None -> print_endline "Parsing error"
     | Some display ->
