@@ -5,4 +5,4 @@ Require Import ExtrOcamlString.
 Cd "extraction".
 
 Extraction Blacklist List String.
-Separate Extraction Xml.
+Separate Extraction Display.
