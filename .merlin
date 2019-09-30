@@ -1,7 +1,15 @@
 S extraction
 S frontend
+S compcert
+S compcert/common
+S compcert/lib
+S compcert/ia32
 
 B _build/extraction
 B _build/frontend
+B _build/compcert
+B _build/compcert/common
+B _build/compcert/lib
+B _build/compcert/ia32
 
 PKG pxp

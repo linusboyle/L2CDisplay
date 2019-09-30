@@ -1,0 +1,20 @@
+<!ELEMENT display (hstack|vstack|button|label)>
+
+<!ELEMENT hstack ((hstack|vstack|button|label|input),(hstack|vstack|button|label|input))>
+<!ELEMENT vstack ((hstack|vstack|button|label|input),(hstack|vstack|button|label|input))>
+<!--dtd content model should be deterministic:-->
+<!ELEMENT button ((click, text)|(text, click?))>
+<!ELEMENT label (text)>
+<!ELEMENT input (EMPTY|(inputtext, submit?)|(submit, inputtext?))>
+<!ELEMENT text (#PCDATA)>
+<!ELEMENT click (#PCDATA)>
+<!ELEMENT inputtext (#PCDATA)>
+<!ELEMENT submit (#PCDATA)>
+
+<!--output slot-->
+<!ATTLIST text ref CDATA #IMPLIED>
+
+<!--input slot-->
+<!ATTLIST click ref CDATA #REQUIRED>
+<!ATTLIST inputtext ref CDATA #REQUIRED>
+<!ATTLIST submit ref CDATA #REQUIRED>

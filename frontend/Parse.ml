@@ -29,10 +29,36 @@ let get_data node =
         end
     | _ -> None
 
+(* find output slot by name *)
+let get_outputslot node slotname =
+    let properties = node#sub_nodes in
+    match find_subnodes properties slotname with
+    | None -> None
+    | Some slot_node -> 
+        let data = get_data slot_node in
+        let ref = find_attributes slot_node#attributes "ref" in
+        match (data, ref) with
+        | (None, _ ) -> None
+        | (Some str, None) -> Some (STconst (coqstring_of_camlstring str))
+        | (Some str, Some nodename) -> Some (STref (NRconstruct ((coqstring_of_camlstring nodename), (coqstring_of_camlstring str)) ))
+
+(* find input slot by name *)
+let get_inputslot node slotname =
+    let properties = node#sub_nodes in
+    match find_subnodes properties slotname with
+    | None -> None
+    | Some slot_node -> 
+        let data = get_data slot_node in
+        let ref = find_attributes slot_node#attributes "ref" in
+        match (data, ref) with
+        | (None, _ ) -> None
+        | (_, None) -> None
+        | (Some str, Some nodename) -> Some ((NRconstruct ((coqstring_of_camlstring nodename), (coqstring_of_camlstring str)) ))
+
 let rec parse_display root =
     match root#node_type with
     | Pxp_document.T_element name ->
-        (*should we check name = "display" here?*)
+        (*shall we check name = "display" here?*)
         let subnodes = root#sub_nodes in
         begin match subnodes with
         | node :: [] -> parse_dis_main node
@@ -45,7 +71,9 @@ and parse_dis_main root =
     | Pxp_document.T_element name ->
             if name = "hstack" || name = "vstack" then
                 parse_dis_layout root name
-            else if name = "button" || name = "label" then
+            else if name = "button" || name = "label" 
+                    || name = "input"
+            then
                 parse_dis_widget root name
             else None
     | _ -> None
@@ -63,61 +91,18 @@ and parse_dis_layout root name =
 
 and parse_dis_widget root name =
     if name = "label" then parse_dis_label root
-                      else parse_dis_button root
+    else if name = "button" then parse_dis_button root
+    else parse_dis_input root
 
 and parse_dis_label root =
-    let properties = root#sub_nodes in
-    match find_subnodes properties "text" with
+    match get_outputslot root "text" with
     | None -> None
-    | Some text_node -> 
-            let data = get_data text_node in
-            let ref = find_attributes text_node#attributes "ref" in
-            match (data, ref) with
-            | (None, _ ) -> None
-            | (Some str, None) -> Some (Label (STconst (coqstring_of_camlstring str)) )
-            | (Some str, Some nodename) -> Some (Label (STref (NRconstruct ((coqstring_of_camlstring nodename), (coqstring_of_camlstring str)) )))
+    | Some slot -> Some (Label slot)
 
 and parse_dis_button root =
-    let properties = root#sub_nodes in
-    let text_node = find_subnodes properties "text" in
-    let click_node = find_subnodes properties "click" in
-    match (text_node, click_node) with
-    | (None, _ ) -> None
-    | (Some tn, None) -> 
-            let data = get_data tn in
-            let ref = find_attributes tn#attributes "ref" in
-            begin match (data, ref) with
-            | (None, _ ) -> None
-            | (Some str, None) -> 
-                    Some (Button ((STconst (coqstring_of_camlstring str)), None))
-            | (Some str, Some nodename) -> 
-                    Some (Button ((STref (NRconstruct (
-                                    (coqstring_of_camlstring nodename), 
-                                    (coqstring_of_camlstring str)
-                                ))), None))
-            end
-    | (Some tn, Some cn) -> 
-            let t_data = get_data tn in
-            let t_ref = find_attributes tn#attributes "ref" in
-            let c_data = get_data cn in
-            let c_ref = find_attributes cn#attributes "ref" in
-            begin match (t_data, t_ref, c_data, c_ref) with
-            | (_ , _ , None, _) -> None
-            | (_ , _ , _ , None) -> None
-            | (None, _ , Some _, Some _) -> None
-            | (Some str, None, Some c_slotname, Some c_nodename) -> 
-                    Some (Button ((STconst (coqstring_of_camlstring str)), 
-                            Some (NRconstruct (
-                                    (coqstring_of_camlstring c_nodename), 
-                                    (coqstring_of_camlstring c_slotname)
-                            ))))
-            | (Some t_slotname, Some t_nodename, Some c_slotname, Some c_nodename) -> 
-                    Some (Button ((STref (NRconstruct (
-                                    (coqstring_of_camlstring t_nodename), 
-                                    (coqstring_of_camlstring t_slotname)
-                                ))), 
-                            Some (NRconstruct (
-                                    (coqstring_of_camlstring c_nodename), 
-                                    (coqstring_of_camlstring c_slotname)
-                            ))))
-            end
+    match ((get_outputslot root "text"), (get_inputslot root "click")) with
+    | (None, _) -> None
+    | (Some textslot, clickslot) -> Some (Button (textslot, clickslot))
+
+and parse_dis_input root = 
+    Some (Input ((get_inputslot root "inputtext"), (get_inputslot root "submit")))

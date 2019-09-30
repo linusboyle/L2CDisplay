@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE display SYSTEM "display.dtd">
+<!--this is a comment-->
+<display>
+  <hstack>
+    <vstack>
+      <button>
+        <click ref="backend1">node_input</click>
+        <text ref="backend1">node_output1</text>
+        <!--this is another comment-->
+      </button>
+      <label>
+        <text ref="backend1">node_output2</text>
+      </label>
+    </vstack>
+    <vstack>
+      <button>
+        <click ref="backend2">node_input</click>
+        <text ref="backend2">node_output</text>
+      </button>
+      <vstack>
+        <label>
+          <text>constant text</text>
+        </label>
+        <input>
+          <inputtext ref="backend2">node_input2</inputtext>
+          <submit ref="backend3">node_input</submit>
+        </input>
+      </vstack>
+    </vstack>
+  </hstack>
+</display>
