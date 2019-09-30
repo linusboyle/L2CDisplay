@@ -20,7 +20,7 @@ OCB_OPTIONS=\
   -pkg pxp \
   $(INCLUDES)
 
-TARGET=Test.native
+TARGET=Print.native
 
 # Flocq
 FLOCQ_CORE=Fcore_float_prop.v Fcore_Zaux.v Fcore_rnd_ne.v Fcore_FTZ.v \
@@ -74,3 +74,6 @@ compile:
 
 coqide:
 	coqide $(INCLUDES)
+
+test:
+	$(OCAMLBUILD) $(OCB_OPTIONS) Test.native

@@ -1,7 +1,10 @@
 <!ELEMENT display (hstack|vstack|button|label)>
 
+<!--layouts-->
 <!ELEMENT hstack ((hstack|vstack|button|label|input),(hstack|vstack|button|label|input))>
 <!ELEMENT vstack ((hstack|vstack|button|label|input),(hstack|vstack|button|label|input))>
+
+<!--widgets-->
 <!--dtd content model should be deterministic:-->
 <!ELEMENT button ((click, text)|(text, click?))>
 <!ELEMENT label (text)>

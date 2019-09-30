@@ -106,3 +106,25 @@ and parse_dis_button root =
 
 and parse_dis_input root = 
     Some (Input ((get_inputslot root "inputtext"), (get_inputslot root "submit")))
+
+let parse_xml_from_file filename =
+    let spec = Pxp_tree_parser.default_spec in
+    let config = Pxp_types.default_config in
+    let source = Pxp_types.from_file filename in
+    let doc = 
+        try
+            Some (Pxp_tree_parser.parse_document_entity config source spec)
+        with
+        | Pxp_types.Validation_error _
+        | Pxp_types.WF_error _
+        | Pxp_types.Namespace_error _
+        | Pxp_types.Error _
+        | Pxp_types.At(_,_) as error ->
+            print_endline ("PXP error " ^ Pxp_types.string_of_exn error);None
+    in
+    doc
+
+let parse_display_from_file filename =
+    match parse_xml_from_file filename with
+    | None -> None
+    | Some doc -> parse_display doc#root
