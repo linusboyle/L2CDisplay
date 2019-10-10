@@ -1,0 +1,15 @@
+-I compcert 
+-I compcert/lib 
+-I compcert/common 
+-I compcert/ia32 
+-I display 
+-I src 
+-I driver 
+-I frontend 
+-I util 
+-I compcert/flocq/Core 
+-I compcert/flocq/Prop 
+-I compcert/flocq/Calc 
+-I compcert/flocq/Appli 
+-I parser 
+-I parser/validator
