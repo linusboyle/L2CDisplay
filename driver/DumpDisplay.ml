@@ -1,4 +1,5 @@
-open Parse
+open ParseDisplay
+open Format
 open PrintDisplay
 
 (*simple driver*)
@@ -7,4 +8,4 @@ let () =
     match parsed with
     | None -> print_endline "Parsing error"
     | Some display ->
-        print_display display
+        print_display std_formatter display

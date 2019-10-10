@@ -1,5 +1,5 @@
 open Display;;
-open Util;;
+open Camlcoq;;
 
 let rec find_subnodes sublist nodename =
     match sublist with
@@ -40,7 +40,7 @@ let get_outputslot node slotname =
         match (data, ref) with
         | (None, _ ) -> None
         | (Some str, None) -> Some (STconst (coqstring_of_camlstring str))
-        | (Some str, Some nodename) -> Some (STref (NRconstruct ((coqstring_of_camlstring nodename), (coqstring_of_camlstring str)) ))
+        | (Some str, Some nodename) -> Some (STref (NRconstruct ((intern_string nodename), (intern_string str)) ))
 
 (* find input slot by name *)
 let get_inputslot node slotname =
@@ -53,7 +53,7 @@ let get_inputslot node slotname =
         match (data, ref) with
         | (None, _ ) -> None
         | (_, None) -> None
-        | (Some str, Some nodename) -> Some ((NRconstruct ((coqstring_of_camlstring nodename), (coqstring_of_camlstring str)) ))
+        | (Some str, Some nodename) -> Some ((NRconstruct ((intern_string nodename), (intern_string str)) ))
 
 let rec parse_display root =
     match root#node_type with

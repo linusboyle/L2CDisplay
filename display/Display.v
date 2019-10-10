@@ -1,6 +1,7 @@
 Require Import String.
+Require Import AST.
 
-Definition slotid := string.
+Definition slotid := ident.
 
 (*a reference to Lustre backend contains the target node name*)
 (*and the input/output slot name*)

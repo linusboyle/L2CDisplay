@@ -1,6 +1,6 @@
-open Parse;;
+open ParseDisplay
 open PrintClight
-open ClightGen
+open DisplayClightGen
 open Format
 
 let () = 

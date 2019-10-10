@@ -16,3 +16,5 @@ misc/
 *.native
 *.byte
 .depend
+
+Version.ml
