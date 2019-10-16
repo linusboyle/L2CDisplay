@@ -104,7 +104,7 @@ parser:
 	cd frontend && make clean && make
 
 coqparser:
-	# NOTE: disabled for now; remember to uncomment
+	# TODO: disabled for now; remember to uncomment
 	#menhir --coq parser/Parser.vy
 	#$(COQC) parser/Parser.v
 	#$(COQC) parser/Tokenizer.v

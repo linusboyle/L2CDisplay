@@ -3,6 +3,7 @@ Require Import Maps.
 Require Import AST.
 Require Import Display.
 Require Import LustreS.
+Require Import Cltypes.
 
 Definition nodeenv := PTree.t (LustreS.node).
 Definition empty_nodeenv := PTree.empty (LustreS.node).
@@ -18,24 +19,35 @@ Fixpoint register_node (ne: nodeenv) (nodes : list (ident * LustreS.node)) :=
       register_node ne1 ntl
   end.
 
-Definition check_node (ne: nodeenv) (ndname: ident) : bool :=
-    match ne ! ndname with
-    | None => false
-    | Some _ => true
-    end.
+Fixpoint check_slot (varlist: list(ident*type)) (slname: ident) : bool :=
+  match varlist with 
+  | nil => false
+  | (vi, vt) :: tl => if peq slname vi then true
+                      else check_slot tl slname
+  end.
 
 Definition slotcheck_in { A : Type } (ne: nodeenv) (inpt: InputSlot A) : bool :=
   match inpt with 
   | None => true
   | Some (NRconstruct ndname slname) => 
-    check_node ne ndname
+    match ne ! ndname with
+    | None => false
+    | Some nd => 
+        let args := Lustre.nd_args nd in
+        check_slot args slname
+    end
   end.
 
 Definition slotcheck_out { A : Type } (ne: nodeenv) (output: OutputSlot A) : bool :=
   match output with
   | STconst _ => true
   | STref (NRconstruct ndname slname) =>
-    check_node ne ndname
+    match ne ! ndname with
+    | None => false
+    | Some nd => 
+        let rets := Lustre.nd_rets nd in
+        check_slot rets slname
+    end
   end.
 
 Fixpoint model_analysis (model: display) (ne: nodeenv) : bool :=
