@@ -23,13 +23,17 @@ Inductive display: Type :=
   (*widgets*)
   | Button: OutputSlot string -> InputSlot bool -> display (* a button has a text slot and click slot *)
   | Label: OutputSlot string -> display (* a label has a text slot *)
-  | Input: InputSlot string -> InputSlot bool -> display (* a input line with its current text and 'submit' signal *)
+  | Input: InputSlot string -> InputSlot bool -> display (* an input line with its current text and 'submit' signal *)
   (*layouts*)
   | Vstack: display -> display -> display
   | Hstack: display -> display -> display
 .
 
-(*an example*)
+Definition typeof_input (t: Type) (slot: InputSlot t) := t.
+
+Definition typeof_output (t: Type) (slot: OutputSlot t) := t.
+
+(* an example *)
 Definition dual_btn_horizontal := Hstack (Button (STconst _ "hello1"%string) None) (Button (STconst _ "hello2"%string) None).
 
 Fixpoint btn_to_label (model: display) {struct model} : display := 

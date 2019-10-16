@@ -62,7 +62,7 @@ PARSERVALID= Alphabet.v Tuples.v Grammar.v Automaton.v Validator_safe.v Validato
 
 DRIVER=Tree.v TransTypeName.v LustreWGen.v Compiler.v
 
-DISPLAY=Display.v DisplayClightGen.v
+DISPLAY=Display.v DisplayClightGen.v StaticAnalysis.v
 
 FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(PARSERVALID) $(DRIVER) $(FLOCQ) $(DISPLAY)
 

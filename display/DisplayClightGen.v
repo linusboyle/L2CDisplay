@@ -1,10 +1,12 @@
 Require Import AST.
 Require Import Coqlib.
-Require Import Integers.
+Require Import Clight.
 Require Import Ctypes.
 Require Import Display.
-Require Import Clight.
+Require Import Errors.
+Require Import Integers.
 Require Import String.
+Require Import StaticAnalysis.
 
 Parameter intern_string : string -> positive.
 
@@ -21,5 +23,7 @@ Definition hw_program : program :=
   let main_ident := intern_string "main" in
   mkprogram ((main_ident, Gfun (Internal main_def)) :: nil) main_ident.
 
-Definition trans_program (model: display): program :=
-  hw_program.
+Definition trans_program (model: display) (astS : LustreS.program): res program :=
+  if analysis model astS then OK hw_program
+  else Error ((MSG "static analysis failed in display mode") :: nil)
+.

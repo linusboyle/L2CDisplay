@@ -5,7 +5,7 @@
   <hstack>
     <vstack>
       <button>
-        <click ref="backend1">node_input</click>
+        <click ref="filter">node_input</click>
         <text ref="backend1">node_output1</text>
         <!--this is another comment-->
       </button>

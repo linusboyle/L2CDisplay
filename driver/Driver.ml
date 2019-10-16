@@ -138,8 +138,7 @@ let parser_display_mode fn =
     | None -> print_string "Display mode has been bypassed because of error\n"; None
     | Some model -> 
         if !flag_print_display then print_display std_formatter model else ();
-        let astC = DisplayClightGen.trans_program model in
-        Some astC
+        Some model
 ;;
 
 let translate fn=
@@ -179,12 +178,15 @@ let translate fn=
 
   let path = output_path main mfn in
 
-  let astC_dis = if !display_file = "" then None else parser_display_mode !display_file in
-
-  let () = 
-    match astC_dis with
-    | None -> ()
-    | Some astC -> output_c_file astC (path ^ "_display")
+  let () = if !display_file = "" then () else 
+      match parser_display_mode !display_file with
+      | None -> ()
+      | Some model -> 
+        begin match DisplayClightGen.trans_program model astS with
+        | Errors.OK astC -> output_c_file astC (path ^ "_display") 
+        | Errors.Error msg ->
+            print_error stderr msg;
+        end
   in
 
   let set_dest dst opt f =
