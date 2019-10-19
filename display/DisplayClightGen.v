@@ -8,6 +8,8 @@ Require Import Integers.
 Require Import String.
 Require Import StaticAnalysis.
 
+Local Open Scope error_monad_scope.
+
 Parameter intern_string : string -> positive.
 
 Definition main_def : function := 
@@ -24,6 +26,4 @@ Definition hw_program : program :=
   mkprogram ((main_ident, Gfun (Internal main_def)) :: nil) main_ident.
 
 Definition trans_program (model: display) (astS : LustreS.program): res program :=
-  if analysis model astS then OK hw_program
-  else Error ((MSG "static analysis failed in display mode") :: nil)
-.
+  do t1 <- analysis model astS ; OK hw_program.

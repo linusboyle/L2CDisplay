@@ -8,7 +8,7 @@
         <text>increase</text>
       </button>
       <label>
-        <text ref="backend">count</text>
+        <text ref="backend">msg</text>
       </label>
     </vstack>
     <!--<vstack>-->

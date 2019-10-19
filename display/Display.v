@@ -1,37 +1,42 @@
-Require Import String.
 Require Import AST.
+Require Import Ctypes.
+Require Import Cltypes.
+Require Import Coqlib.
+Require Import String.
 
-Definition slotid := ident.
+Definition Tbool := Tint IBool Signed.
+Definition Tchar := Tint I8 Signed.
+Definition Tchar_str := Tpointer Tchar.
 
 (*a reference to Lustre backend contains the target node name*)
 (*and the input/output slot name*)
 Inductive NodeRef : Type :=
-  | NRconstruct: slotid -> slotid -> NodeRef
+  | NRconstruct: ident -> ident -> NodeRef
 .
 
 (* an output slot can be assigned constant value or associated with a node ref *)
-Inductive OutputSlot(t: Type): Type :=
-  | STconst: t -> OutputSlot t
-  | STref: NodeRef -> OutputSlot t (* node name and input/output name *) 
+Inductive OutputSlot(t: type): Type :=
+  | STconst: string -> OutputSlot t
+  | STref: NodeRef -> OutputSlot t (* node name and input/output name *)
 .
 
 (* an input slot can be ignored or associated with a node ref *)
-Definition InputSlot(t: Type): Type := option NodeRef.
+Definition InputSlot(t: type): Type := option NodeRef.
 
-(*TODO: add more gui component*)
+(*TODO: add atomic and compound widgets*)
 Inductive display: Type :=
   (*widgets*)
-  | Button: OutputSlot string -> InputSlot bool -> display (* a button has a text slot and click slot *)
-  | Label: OutputSlot string -> display (* a label has a text slot *)
-  | Input: InputSlot string -> InputSlot bool -> display (* an input line with its current text and 'submit' signal *)
+  | Button: OutputSlot Tchar_str -> InputSlot Tbool -> display (* a button has a text slot and click slot *)
+  | Label: OutputSlot Tchar_str -> display (* a label has a text slot *)
+  | Input: InputSlot Tchar_str -> InputSlot Tbool -> display (* an input line with its current text and 'submit' signal *)
   (*layouts*)
   | Vstack: display -> display -> display
   | Hstack: display -> display -> display
 .
 
-Definition typeof_input (t: Type) (slot: InputSlot t) := t.
+Definition typeof_input (t: type) (slot: InputSlot t) := t.
 
-Definition typeof_output (t: Type) (slot: OutputSlot t) := t.
+Definition typeof_output (t: type) (slot: OutputSlot t) := t.
 
 (* an example *)
 Definition dual_btn_horizontal := Hstack (Button (STconst _ "hello1"%string) None) (Button (STconst _ "hello2"%string) None).

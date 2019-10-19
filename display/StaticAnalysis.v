@@ -4,9 +4,19 @@ Require Import AST.
 Require Import Display.
 Require Import LustreS.
 Require Import Cltypes.
+Require Import Errors.
 
 Definition nodeenv := PTree.t (LustreS.node).
 Definition empty_nodeenv := PTree.empty (LustreS.node).
+
+Definition err_nd_notfound (ndname : ident) : res unit :=
+  Error ((MSG "Node ") :: (CTX ndname) :: (MSG " not found" :: nil)).
+
+Definition err_sl_notfound (slname : ident) : res unit :=
+  Error ((MSG "Paramemter ") :: (CTX slname) :: (MSG " not found" :: nil)).
+
+Definition err_ty_incompatible : res unit :=
+  Error (msg "Type not compatible").
 
 Definition add_node (ne: nodeenv) (nd : ident * LustreS.node) :=
   PTree.set (fst nd) (snd nd) ne.
@@ -19,45 +29,65 @@ Fixpoint register_node (ne: nodeenv) (nodes : list (ident * LustreS.node)) :=
       register_node ne1 ntl
   end.
 
-Fixpoint check_slot (varlist: list(ident*type)) (slname: ident) : bool :=
-  match varlist with 
-  | nil => false
-  | (vi, vt) :: tl => if peq slname vi then true
-                      else check_slot tl slname
+(*NOTE: wrong impl*)
+Fixpoint check_type (source target: type) : res unit :=
+  match (source, target) with 
+  | (Tarray _ t1 sz1, Tarray _ t2 sz2) => 
+      check_type t1 t2
+  | (Tint _ _, Tint _ _) => OK tt
+  | (Tpointer t1, Tarray _ t2 sz2) => check_type t1 t2
+  | (Tarray _ t1 sz1, Tpointer t2) => check_type t1 t2
+  | (_, _) => if type_eq source target then OK tt
+              else err_ty_incompatible
   end.
 
-Definition slotcheck_in { A : Type } (ne: nodeenv) (inpt: InputSlot A) : bool :=
+Fixpoint check_slot (varlist: list(ident*type)) (ty: type) (slname: ident) : res unit :=
+  match varlist with 
+  | nil => err_sl_notfound slname
+  | (vi, vt) :: tl => if peq slname vi then check_type vt ty
+                      else check_slot tl ty slname
+  end.
+
+Definition slotcheck_in { A : type } (ne: nodeenv) (inpt: InputSlot A) : res unit :=
   match inpt with 
-  | None => true
+  | None => OK tt
   | Some (NRconstruct ndname slname) => 
     match ne ! ndname with
-    | None => false
+    | None => err_nd_notfound ndname
     | Some nd => 
         let args := Lustre.nd_args nd in
-        check_slot args slname
+        check_slot args A slname
     end
   end.
 
-Definition slotcheck_out { A : Type } (ne: nodeenv) (output: OutputSlot A) : bool :=
+Definition slotcheck_out { A : type } (ne: nodeenv) (output: OutputSlot A) : res unit :=
   match output with
-  | STconst _ => true
+  | STconst _ => OK tt
   | STref (NRconstruct ndname slname) =>
     match ne ! ndname with
-    | None => false
-    | Some nd => 
+    | None => err_nd_notfound ndname
+    | Some nd =>
         let rets := Lustre.nd_rets nd in
-        check_slot rets slname
+        check_slot rets A slname
     end
   end.
 
-Fixpoint model_analysis (model: display) (ne: nodeenv) : bool :=
+Local Open Scope error_monad_scope.
+
+Fixpoint model_analysis (model: display) (ne: nodeenv) : res unit :=
   match model with
-  | Vstack m1 m2 | Hstack m1 m2 => andb (model_analysis m1 ne) (model_analysis m2 ne)
-  | Button text click => andb (slotcheck_out ne text) (slotcheck_in ne click)
+  | Vstack m1 m2 | Hstack m1 m2 => 
+      do t1 <- model_analysis m1 ne;
+      model_analysis m2 ne
+  | Button text click => 
+      do t1 <- slotcheck_out ne text;
+      slotcheck_in ne click
   | Label text => slotcheck_out ne text
-  | Input text submit => andb (slotcheck_in ne text) (slotcheck_in ne submit)
+  | Input text submit => 
+      do t1 <- slotcheck_in ne text;
+      slotcheck_in ne submit
   end.
 
-Definition analysis (model: display) (p : LustreS.program) : bool :=
+Definition analysis (model: display) (p : LustreS.program) : res unit :=
   let ne := register_node empty_nodeenv (Lustre.node_block p) in
   model_analysis model ne.

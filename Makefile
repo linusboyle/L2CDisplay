@@ -66,7 +66,7 @@ DISPLAY=Display.v DisplayClightGen.v StaticAnalysis.v
 
 FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(PARSERVALID) $(DRIVER) $(FLOCQ) $(DISPLAY)
 
-.PHONY: pre parser coqparser proof extraction compile test install uninstall clean clean-all coqide
+.PHONY: pre parser proof extraction afterwork compile test coqide
 
 all: pre depend proof coqparser extraction parser afterwork compile
 
@@ -86,6 +86,9 @@ doc/coq2html.ml: doc/coq2html.mll
 pre:
 	@rm -rf Version.ml
 
+depend: $(FILES)
+	@$(COQDEP) $^ > .depend
+
 proof: $(FILES:.v=.vo)
 
 .SUFFIXES: .v .vo
@@ -94,9 +97,6 @@ proof: $(FILES:.v=.vo)
 	@rm -f doc/$(*F).glob
 	@echo "COQC $*.v"
 	@$(COQC) -dump-glob doc/$(*F).glob $*.v
-
-depend: $(FILES)
-	@$(COQDEP) $^ > .depend
 
 -include .depend
 
@@ -111,8 +111,8 @@ coqparser:
 	ocamllex parser/Lexer.mll
 
 extraction:
-	#rm -f extraction/*.ml extraction/*.mli
-	#$(COQEXEC) extraction/Extract.v
+	rm -f extraction/*.ml extraction/*.mli
+	$(COQEXEC) extraction/Extract.v
 
 afterwork:
 	mv parser/Lexer.ml extraction
