@@ -1,4 +1,0 @@
-<vstack>
-  <button text="increase" click="@backend.incr"/>
-  <label text="@backend.msg"/>
-</vstack>

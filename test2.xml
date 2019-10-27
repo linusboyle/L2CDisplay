@@ -1,9 +1,0 @@
-<vstack>
-  <button click="@backend.incr" text="increase"/>
-  <label text="@backend.msg"/>
-  <floating>
-    <canvas height="120" width="300" click="@generator.change">
-      <circle radius="@generator.radius"/>
-    </canvas>
-  </floating>
-</vstack>

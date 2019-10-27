@@ -17,5 +17,5 @@ misc/
 *.byte
 .depend
 
-Version.ml
+/Version.ml
 parser/Parser.v
