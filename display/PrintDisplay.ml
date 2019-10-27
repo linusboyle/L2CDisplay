@@ -8,7 +8,7 @@ let rec print_display p display =
     | Button (text, click) ->
             let text_msg = 
                 match text with
-                |STconst const_text -> "with constant text of '" ^ (camlstring_of_coqstring const_text) ^ "'"
+                |STconst id -> "with constant text '" ^ (extern_atom id) ^ "'"
                 |STref (NRconstruct (nodename, slotname)) -> "with reference text to node " ^ (extern_atom nodename) ^ " and slot " ^ (extern_atom slotname)
             in
             let click_msg = 
@@ -20,7 +20,7 @@ let rec print_display p display =
     | Label text ->
             let text_msg = 
                 match text with
-                |STconst const_text -> "with constant text of '" ^ (camlstring_of_coqstring const_text) ^ "'"
+                |STconst id -> "with constant text of '" ^ (extern_atom id) ^ "'"
                 |STref (NRconstruct (nodename, slotname)) -> "with reference text to node " ^ (extern_atom nodename) ^ " and slot " ^ (extern_atom slotname)
             in
             fprintf p "a label %s\n" text_msg

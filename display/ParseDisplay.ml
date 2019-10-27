@@ -39,7 +39,7 @@ let get_outputslot node slotname =
         let ref = find_attributes slot_node#attributes "ref" in
         match (data, ref) with
         | (None, _ ) -> None
-        | (Some str, None) -> Some (STconst (coqstring_of_camlstring str))
+        | (Some str, None) -> Some (STconst (intern_string str))
         | (Some str, Some nodename) -> Some (STref (NRconstruct ((intern_string nodename), (intern_string str)) ))
 
 (* find input slot by name *)

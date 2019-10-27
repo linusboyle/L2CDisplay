@@ -26,7 +26,7 @@ options:
         -print-parse:           Print parse output
 	-target_dir <dir>:	Set the directory of target files to <dir>
 	-display <file>:	Set the gui specification of l2c display mode
-        -print-display:           Print parsed display model
+        -print-display:         Print parsed display model
 	-o <file>:		Indicate the output file name
 	-version:		Print version information
 	-help:			Print this usage message

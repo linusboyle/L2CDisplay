@@ -1,30 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE display SYSTEM "display.dtd">
-<display>
-  <!--<hstack>-->
-    <vstack>
-      <button>
-        <click ref="backend">incr</click>
-        <text>increase</text>
-      </button>
-      <label>
-        <text ref="backend">msg</text>
-      </label>
-    </vstack>
-    <!--<vstack>-->
-      <!--<button>-->
-        <!--<click ref="backend2">node_input</click>-->
-        <!--<text ref="backend2">node_output</text>-->
-      <!--</button>-->
-      <!--<vstack>-->
-        <!--<label>-->
-          <!--<text>constant text</text>-->
-        <!--</label>-->
-        <!--<input>-->
-          <!--<inputtext ref="backend2">node_input2</inputtext>-->
-          <!--<submit ref="backend3">node_input</submit>-->
-        <!--</input>-->
-      <!--</vstack>-->
-    <!--</vstack>-->
-  <!--</hstack>-->
-</display>
+<vstack>
+  <button text="increase" click="@backend.incr"/>
+  <label text="@backend.msg"/>
+</vstack>

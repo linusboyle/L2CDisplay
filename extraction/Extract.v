@@ -10,6 +10,7 @@ Require Errors.
 Require Parser.
 Require Tokenizer.
 Require DisplayClightGen.
+Require GTree.
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
@@ -75,9 +76,6 @@ Extract Constant LustreWGen.float_of_str =>
   "fun s -> Camlcoq.coqfloat32_of_camlfloat(float_of_string s)".
 Extract Constant LustreWGen.real_of_str => 
   "fun s -> Camlcoq.coqfloat_of_camlfloat(float_of_string s)".
-
-Extract Constant DisplayClightGen.intern_string =>
-  "(fun s -> Camlcoq.intern_string (Camlcoq.camlstring_of_coqstring s))".
 
 Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program

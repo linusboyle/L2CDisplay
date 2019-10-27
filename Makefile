@@ -1,6 +1,8 @@
 FLOCQDIR=compcert/flocq
 
-DIRS=compcert compcert/lib compcert/common compcert/ia32 display src driver frontend util $(FLOCQDIR)/Core $(FLOCQDIR)/Prop $(FLOCQDIR)/Calc $(FLOCQDIR)/Appli parser parser/validator
+DIRS=compcert compcert/lib compcert/common compcert/ia32 display src driver frontend util \
+	 $(FLOCQDIR)/Core $(FLOCQDIR)/Prop $(FLOCQDIR)/Calc $(FLOCQDIR)/Appli \
+	 parser parser/validator
 
 INCLUDES=$(patsubst %,-I %, $(DIRS))
 
@@ -9,6 +11,7 @@ COQDEP=coqdep $(INCLUDES)
 COQDOC=coqdoc
 COQEXEC=coqtop $(INCLUDES) -batch -load-vernac-source
 COQCHK=coqchk $(INCLUDES)
+MENHIR=menhir
 
 OCAMLBUILD=ocamlbuild
 OCB_OPTIONS=\
@@ -62,19 +65,29 @@ PARSERVALID= Alphabet.v Tuples.v Grammar.v Automaton.v Validator_safe.v Validato
 
 DRIVER=Tree.v TransTypeName.v LustreWGen.v Compiler.v
 
-DISPLAY=Display.v DisplayClightGen.v StaticAnalysis.v
+DISPLAY=DisplayClightGen.v GTree.v DisplayT.v DisplayTGen.v
 
-FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(PARSERVALID) $(DRIVER) $(FLOCQ) $(DISPLAY)
+PARSER=Parser.v Tokenizer.v
 
-.PHONY: pre parser proof extraction afterwork compile test coqide
+GENERATED=parser/Parser.v
 
-all: pre depend proof coqparser extraction parser afterwork compile
+FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(PARSERVALID) $(DRIVER) $(FLOCQ) $(DISPLAY) $(PARSER)
+
+.PHONY: depend proof extraction parser test coqide
+
+all: 
+	@rm -f Version.ml
+	@test -f .depend || $(MAKE) depend
+	$(MAKE) proof
+	$(MAKE) extraction
+	$(MAKE) parser
+	$(MAKE) compile
 
 documentation: doc/coq2html $(FILES)
 	mkdir -p doc/html
 	rm -f doc/html/*.html
 	doc/coq2html -o 'doc/html/%.html' doc/*.glob \
-          $(filter-out doc/coq2html cparser/Parser.v, $^)
+          $(filter-out doc/coq2html parser/Parser.v, $^)
 	cp doc/coq2html.css doc/coq2html.js doc/html/
 
 doc/coq2html: doc/coq2html.ml
@@ -83,39 +96,37 @@ doc/coq2html: doc/coq2html.ml
 doc/coq2html.ml: doc/coq2html.mll
 	ocamllex -q doc/coq2html.mll
 
-pre:
-	@rm -rf Version.ml
+depend: $(GENERATED) depend1
 
-depend: $(FILES)
+depend1: $(FILES)
+	@echo "Analyzing Coq Dependencies.."
 	@$(COQDEP) $^ > .depend
 
 proof: $(FILES:.v=.vo)
 
-.SUFFIXES: .v .vo
-
-.v.vo:
+%.vo: %.v
 	@rm -f doc/$(*F).glob
 	@echo "COQC $*.v"
 	@$(COQC) -dump-glob doc/$(*F).glob $*.v
 
+parser/Parser.v : parser/Parser.vy
+	@rm -f $@
+	$(MENHIR) --coq parser/Parser.vy
+	@chmod a-w $@
+
 -include .depend
 
 parser:
-	cd frontend && make clean && make
-
-coqparser:
-	# TODO: disabled for now; remember to uncomment
-	#menhir --coq parser/Parser.vy
-	#$(COQC) parser/Parser.v
-	#$(COQC) parser/Tokenizer.v
+	$(MAKE) -C frontend
 	ocamllex parser/Lexer.mll
-
-extraction:
-	rm -f extraction/*.ml extraction/*.mli
-	$(COQEXEC) extraction/Extract.v
-
-afterwork:
 	mv parser/Lexer.ml extraction
+
+extraction: extraction/STAMP
+
+extraction/STAMP: $(FILES:.v=.vo) extraction/Extract.v
+	@rm -f extraction/*.ml extraction/*.mli
+	$(COQEXEC) extraction/Extract.v
+	@touch extraction/STAMP
 
 compile: Version.ml
 	$(OCAMLBUILD) $(OCB_OPTIONS) $(TARGET)
@@ -134,4 +145,4 @@ coqide:
 	coqide $(INCLUDES)
 
 test:
-	$(OCAMLBUILD) $(OCB_OPTIONS) DumpDisplay.native
+	$(OCAMLBUILD) $(OCB_OPTIONS) DumpG.native

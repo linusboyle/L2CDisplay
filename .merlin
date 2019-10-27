@@ -1,19 +1,17 @@
 S extraction
-S frontend
 S util
 S src
 S driver
-S parser
+S display
 S compcert
 S compcert/common
 S compcert/lib
 S compcert/ia32
 
 B _build/extraction
-B _build/frontend
 B _build/util
 B _build/driver
-B _build/parser
+B _build/display
 B _build/src
 B _build/compcert
 B _build/compcert/common

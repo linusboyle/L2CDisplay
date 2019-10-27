@@ -22,8 +22,7 @@ open AST
 open PrintClight
 open Datatypes
 open BinPos
-open ParseDisplay
-open PrintDisplay
+open PrintG
 
 let print_error oc msg =
   let print_one_error = function
@@ -133,11 +132,11 @@ let parser_by_coq content =
 ;;
 
 let parser_display_mode fn =
-    let dis_model = parse_display_from_file fn in
+    let dis_model = ParseG.parse_from_file fn in
     match dis_model with
     | None -> print_string "Display mode has been bypassed because of error\n"; None
     | Some model -> 
-        if !flag_print_display then print_display std_formatter model else ();
+        if !flag_print_display then print_node std_formatter 0 model else ();
         Some model
 ;;
 
@@ -181,7 +180,7 @@ let translate fn=
   let () = if !display_file = "" then () else 
       match parser_display_mode !display_file with
       | None -> ()
-      | Some model -> 
+      | Some model ->
         begin match DisplayClightGen.trans_program model astS with
         | Errors.OK astC -> output_c_file astC (path ^ "_display") 
         | Errors.Error msg ->

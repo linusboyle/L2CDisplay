@@ -6,7 +6,7 @@
 		print_string s;
 	;;
 
-        open Tree
+    open Tree
 	open BinNums
 	open Camlcoq
 
