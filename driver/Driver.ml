@@ -218,7 +218,7 @@ let translate fn=
 
 let parse_command () =
     if (Array.length Sys.argv)=1 then
-      print_string usage_msg
+      Arg.usage (Arg.align options) usage_msg
     else
       Arg.parse (Arg.align options) translate usage_msg;;
 
