@@ -408,6 +408,7 @@ let print_composite_init p il =
     il;
   fprintf p "}"
 
+(*TODO: remove typedef and allow external struct*)
 let print_struct_or_union p (name, fld) = 
   fprintf p "@[<v 2>typedef struct {"; 
   let rec print_fields = function

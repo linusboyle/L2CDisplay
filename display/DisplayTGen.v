@@ -22,6 +22,9 @@ Definition err_ty_incompatible {A : Type} : res A :=
 Definition acg_const_name(id: ident) :=   (**r acg_const<num>*)
   Lident.intern_string (String.append ("acg_const") (Lident.string_of_positive id)).
 
+Definition acg_const_str_name (id: ident) :=
+  Lident.intern_string (String.append ("__stringlit_") (Lident.string_of_positive id)).
+
 Definition add_node (ne: nodeenv) (nd : ident * LustreS.node) :=
   PTree.set (fst nd) (snd nd) ne.
 
@@ -90,7 +93,12 @@ Fixpoint trans_slot (ge: generator) (attr: attribute) : res (generator * slot) :
   match attr with
   | SConst na cv =>
       let var := trans_const cv in
-      let cid := acg_const_name (const_next ge) in
+      let cid := 
+        match cv with
+        | GString _ => acg_const_str_name (const_next ge)
+        | _ => acg_const_name (const_next ge)
+        end 
+      in
       let ce1 := PTree.set cid var (const_env ge) in
       let gen1 := mkgenerator (Psucc (const_next ge)) (node_env ge) ce1 in
       OK (gen1, TConst na cid)
