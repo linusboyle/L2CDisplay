@@ -47,6 +47,18 @@ Fixpoint fl_append (f1 f2 : fieldlist)  :=
 
 Local Open Scope error_monad_scope.
 
+Definition trans_slot (sl : slot) :=
+  match sl with
+  | TConst _ _ => sl
+  | TRefin sn nd pa ty =>
+      (*change the node name to field name, see gen_ndstructs below for why*)
+      let iname := Lident.acg_inc_name nd in
+      TRefin sn iname pa ty
+  | TRefout sn nd pa ty =>
+      let oname := Lident.acg_outc_name nd in
+      TRefout sn oname pa ty
+  end.
+
 Fixpoint gen_field (d : displayT) (se: seq) : res (displayT * seq * fieldlist) :=
   match d with
   | TNode wn dl sl =>
@@ -57,7 +69,7 @@ Fixpoint gen_field (d : displayT) (se: seq) : res (displayT * seq * fieldlist) :
       | Some num => 
           let fn := get_field_name wn num in
           let fl := Fcons fn tn fl0 in
-          let d' := TNode fn dl0 sl in
+          let d' := TNode fn dl0 (List.map trans_slot sl) in
           let se1 := PTree.set wn (Pos.succ num) se0 in
           OK (d', se1, fl)
       end
@@ -73,9 +85,21 @@ with gen_fields (dl : displayList) (se : seq) : res (displayList * seq * fieldli
       OK (dl', se1, fl')
   end.
 
+Definition mkstruct (nm : ident) := Tstruct nm Fnil.
+
+Definition gen_ndstructs (nid : list ident) : fieldlist :=
+  List.fold_left 
+  (fun fd id => 
+    let in_name := Lident.acg_inc_name id in
+    let out_name := Lident.acg_outc_name id in
+    Fcons in_name (mkstruct in_name) (Fcons out_name (mkstruct out_name) fd)
+  )
+  nid Fnil.
+
 Definition generate_struct (m0 : modelT) : res modelT' :=
   let ce := const_envT m0 in
-  let ne := node_envT m0 in
+  let nid := List.map fst (PTree.elements (node_envT m0)) in
+  let sfds := gen_ndstructs nid in
   let se := gen_seq (display m0) empty_seq in
   do (dis, se0, fds) <- gen_field (display m0) se;
-  OK (mkmodelT' dis ce ne (Tstruct xH fds)).
+  OK (mkmodelT' dis ce nid (Tstruct xH (fl_append sfds fds))).

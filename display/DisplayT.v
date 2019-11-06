@@ -13,7 +13,7 @@ Inductive displayT : Type :=
   | TNode : ident -> displayList -> list slot -> displayT
 with slot : Type :=
   | TConst : ident -> ident -> slot (*slot name, var name*)
-  | TRefin : ident -> ident -> ident -> type -> slot (*slot name, node name, slot name, type*)
+  | TRefin : ident -> ident -> ident -> type -> slot (*slot name, node name, para name, type*)
   | TRefout : ident -> ident -> ident -> type -> slot
 with displayList : Type :=
   | TNil : displayList
@@ -29,6 +29,6 @@ Record modelT : Type := mkmodelT {
 Record modelT' : Type := mkmodelT' {
   display' : displayT;
   const_envT' : constenv;
-  node_envT' : nodeenv;
+  nodes : list ident;
   structT : type
 }.
