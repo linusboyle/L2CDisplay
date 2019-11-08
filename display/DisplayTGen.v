@@ -136,7 +136,7 @@ Fixpoint trans_node (ge: generator) (tree: GTree) : res (generator * displayT) :
       do (ge2, sls) <- trans_slots ge1 attrs;
       OK (ge2, TNode id subt sls)
   end
-with trans_nodes (ge: generator) (nds: treeList) : res (generator * displayList) :=
+with trans_nodes (ge: generator) (nds: treeList) : res (generator * displayListT) :=
   match nds with
   | GNil => OK (ge, TNil)
   | GCons hnd tnds =>

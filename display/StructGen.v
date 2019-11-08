@@ -1,43 +1,40 @@
 Require Import AST.
 Require Import Cltypes.
-Require Import DisplayT.
 Require Import Maps.
 Require Import Coqlib.
 Require Import LustreSGen.
 Require Import Errors.
+Require Import DisplayT.
 
 Definition seq := PTree.t positive.
 Definition empty_seq := PTree.empty positive.
 
+Definition wchecker := PTree.t nat.
+Definition empty_wchecker := PTree.empty nat.
+
+Definition check (wn : ident) (len : nat) (wc : wchecker) : res (wchecker) :=
+  match wc ! wn with
+  | None => OK (PTree.set wn len wc)
+  | Some len' => if beq_nat len' len then OK wc
+                                 else Error (MSG "widget " :: CTX wn :: MSG " has different subwidgets list!" :: nil)
+  end.
+
+Record generator : Type := mkgenerator {
+  sequence : seq;
+  checker : wchecker
+}.
+
+Definition mkstruct (nm : ident) := Tstruct nm Fnil.
+
 Definition get_widget_type (w : ident) : type :=
   let wn := Lident.extern_atom w in
   let tn := String.append "handler_" wn in
-  Tpointer (Tstruct (Lident.intern_string tn) Fnil). (* no field needed *)
+  Tpointer (mkstruct (Lident.intern_string tn)). (* no field needed *)
 
 Definition get_field_name (w : ident) (num : positive) :=
   Lident.intern_string (String.append (Lident.extern_atom w) (Lident.string_of_positive num)).
 
-Definition check_seq (wn: ident) (se : seq) :=
-  match se ! wn with
-  | None => PTree.set wn xH se
-  | Some _ => se
-  end.
-
-Fixpoint gen_seq (d : displayT) (se : seq) : seq :=
-  match d with
-  | TNode wn dl sl =>
-      let se0 := check_seq wn se in
-      gen_seqs dl se0
-  end
-with gen_seqs (dl : displayList) (se : seq) :=
-  match dl with
-  | TNil => se
-  | TCons d dl' =>
-      let se0 := gen_seq d se in
-      gen_seqs dl' se0
-  end.
-
-Fixpoint fl_append (f1 f2 : fieldlist)  :=
+Fixpoint fl_append (f1 f2 : fieldlist) :=
   match f1 with
   | Fnil => f2
   | Fcons id ty rem =>
@@ -47,45 +44,33 @@ Fixpoint fl_append (f1 f2 : fieldlist)  :=
 
 Local Open Scope error_monad_scope.
 
-Definition trans_slot (sl : slot) :=
-  match sl with
-  | TConst _ _ => sl
-  | TRefin sn nd pa ty =>
-      (*change the node name to field name, see gen_ndstructs below for why*)
-      let iname := Lident.acg_inc_name nd in
-      TRefin sn iname pa ty
-  | TRefout sn nd pa ty =>
-      let oname := Lident.acg_outc_name nd in
-      TRefout sn oname pa ty
-  end.
-
-Fixpoint gen_field (d : displayT) (se: seq) : res (displayT * seq * fieldlist) :=
+Fixpoint gen_field (d : displayT) (ge : generator) : res (displayT' * generator * fieldlist) :=
   match d with
   | TNode wn dl sl =>
+      do (dl0, ge0, fl0) <- gen_fields dl ge;
+      let se0 := sequence ge0 in
+      let num := match se0 ! wn with
+                | None => xH
+                | Some num => num
+                end in
+      let fn := get_field_name wn num in
       let tn := get_widget_type wn in
-      do (dl0, se0, fl0) <- gen_fields dl se;
-      match se0 ! wn with
-      | None => Error (msg "failed to generate field")
-      | Some num => 
-          let fn := get_field_name wn num in
-          let fl := Fcons fn tn fl0 in
-          let d' := TNode fn dl0 (List.map trans_slot sl) in
-          let se1 := PTree.set wn (Pos.succ num) se0 in
-          OK (d', se1, fl)
+      let fl := Fcons fn tn fl0 in
+      let d' := TNode (wn, fn) dl0 sl in
+      let se1 := PTree.set wn (Pos.succ num) se0 in
+      do wc1 <- check wn (length dl) (checker ge0);
+      OK (d', mkgenerator se1 wc1, fl)
       end
-  end
-with gen_fields (dl : displayList) (se : seq) : res (displayList * seq * fieldlist) :=
+with gen_fields (dl : displayListT) (ge : generator) : res (displayListT' * generator * fieldlist) :=
   match dl with
-  | TNil => OK (dl, se, Fnil)
+  | TNil => OK (TNil, ge, Fnil)
   | TCons d dl0 =>
-      do (d', se0, fl0) <- gen_field d se;
-      do (dl1, se1, fl1) <- gen_fields dl0 se0;
+      do (d', ge0, fl0) <- gen_field d ge;
+      do (dl1, ge1, fl1) <- gen_fields dl0 ge0;
       let fl' := fl_append fl0 fl1 in
       let dl' := TCons d' dl1 in
-      OK (dl', se1, fl')
+      OK (dl', ge1, fl')
   end.
-
-Definition mkstruct (nm : ident) := Tstruct nm Fnil.
 
 Definition gen_ndstructs (nid : list ident) : fieldlist :=
   List.fold_left 
@@ -100,6 +85,6 @@ Definition generate_struct (m0 : modelT) : res modelT' :=
   let ce := const_envT m0 in
   let nid := List.map fst (PTree.elements (node_envT m0)) in
   let sfds := gen_ndstructs nid in
-  let se := gen_seq (display m0) empty_seq in
-  do (dis, se0, fds) <- gen_field (display m0) se;
+  let ge := mkgenerator empty_seq empty_wchecker in
+  do (dis, se0, fds) <- gen_field (display m0) ge;
   OK (mkmodelT' dis ce nid (Tstruct xH (fl_append sfds fds))).
