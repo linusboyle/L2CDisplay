@@ -101,7 +101,7 @@ Fixpoint trans_slot (ge: generator) (attr: attribute) : res (generator * slot) :
       in
       let ce1 := PTree.set cid var (const_env ge) in
       let gen1 := mkgenerator (Psucc (const_next ge)) (node_env ge) ce1 in
-      OK (gen1, TConst na cid)
+      OK (gen1, TConst na cid (gvar_info var))
   | SNodeRef name nd sl => 
       let ne := node_env ge in
       match ne ! nd with
@@ -149,4 +149,4 @@ Definition trans_model (tree: GTree) (program: LustreS.program) : res modelT :=
   let ne := register_node empty_nodeenv (Lustre.node_block program) in
   let ge := mkgenerator xH ne empty_constenv in
   do (ge1, model) <- trans_node ge tree;
-  OK (mkmodelT model (const_env ge1) (node_env ge1)).
+  OK (mkmodelT model (const_env ge1) (node_env ge1) (Lustre.node_main program)).

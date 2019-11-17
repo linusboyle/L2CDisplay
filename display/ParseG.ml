@@ -36,7 +36,7 @@ and parse_attrs attrlist =
         | _ -> ta
 
 and parse_attr name str =
-    let ref_reg = Str.regexp "@\\([a-zA-Z]+\\)\\.\\([a-zA-Z]+\\)" in
+    let ref_reg = Str.regexp "@\\([_a-zA-Z][_a-zA-Z0-9]+\\)\\.\\([_a-zA-Z][_a-zA-Z0-9]+\\)" in
     let attrid = intern_string name in
     if Str.string_match ref_reg str 0 then
         (*node reference *)

@@ -12,7 +12,7 @@ Require StructGen.
 Record counter : Type := mkcounter {
   sin : list slotS;
   sout : list slotS;
-  scons : list (ident * ident)
+  scons : list (ident * ident * type)
 }.
 
 Definition extenv := PTree.t (ident * fundef).
@@ -20,7 +20,7 @@ Definition empty_extenv := PTree.empty (ident * fundef).
 
 Definition trans_slot_accum (co : counter) (s : slot) : counter :=
   match s with
-  | TConst nm vn => mkcounter (sin co) (sout co) ((nm, vn) :: (scons co))
+  | TConst nm vn ty => mkcounter (sin co) (sout co) ((nm, vn, (ClightGen.trans_type ty)) :: (scons co))
   | TRefin nm nd pa ty => mkcounter (mkslotS nm nd pa (ClightGen.trans_type ty) :: sin co) (sout co) (scons co)
   | TRefout nm nd pa ty => mkcounter (sin co) (mkslotS nm nd pa (ClightGen.trans_type ty) :: sout co) (scons co)
   end.
@@ -76,8 +76,7 @@ Definition get_field_expr (d : displayT') (st : type) : expr :=
     let deref_expr := Ederef (Evar Lident.INSTRUCT (Tpointer st noattr)) st in
     let wty := get_widget_type wn in
     let field_expr := Efield deref_expr wid wty in
-    let ref_expr := Eaddrof field_expr (Tpointer wty noattr) in
-    ref_expr
+    field_expr
   end.
 
 Fixpoint get_field_exprs (dl : displayListT') (st : type) : list expr :=
@@ -121,8 +120,9 @@ Definition create_func_name := Lident.intern_string "create_display_ctx".
 Definition trans_model (mt : modelT') : res modelS :=
   let st := ClightGen.trans_type (structT mt) in
   let cvals := List.map trans_const (PTree.elements (const_envT' mt)) in
-  let stmts0 := reset_gen (nodes mt) st in
+  let nodes := List.map fst (PTree.elements (node_envT' mt)) in
+  let stmts0 := reset_gen nodes st in
   do (stmts1, exts) <- create_gen (display' mt) empty_extenv st;
   let params := (Lident.INSTRUCT, Tpointer st noattr) :: nil in
   let func := mkfunction Tvoid cc_default params nil nil (Ssequence stmts0 stmts1) in
-  OK (mkmodelS (to_widget (display' mt) nil) (List.map snd (PTree.elements exts)) (create_func_name, func) cvals (nodes mt) st).
+  OK (mkmodelS (to_widget (display' mt) nil) (List.map snd (PTree.elements exts)) (create_func_name, func) cvals (node_envT' mt) (node_mainT' mt) st).

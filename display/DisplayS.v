@@ -2,6 +2,7 @@ Require Import AST.
 Require Import Maps.
 Require Import Ctypes.
 Require Import Clight.
+Require Import DisplayT.
 
 Record slotS : Type := mkslotS {
   nm : ident;
@@ -15,7 +16,7 @@ Record widget : Type := mkwidget {
   wid : ident; (* struct field name *)
   slin : list slotS;
   slout : list slotS;
-  slconst : list (ident * ident) (* slot name * constenv entry *)
+  slconst : list (ident * ident * type) (* slot name * constenv entry *)
 }.
 
 Record modelS : Type := mkmodelS {
@@ -23,6 +24,15 @@ Record modelS : Type := mkmodelS {
   external_funcS : list (ident * fundef);
   createFuncS : ident * function;
   const_valS : list (ident * (globvar type));
-  node_valS : list ident;
+  node_valS : nodeenv;
+  node_mainS : ident;
   structS : type
+}.
+
+Record modelS' : Type := mkmodelS' {
+  structS' : type;
+  createFuncS' : ident * function;
+  updateFuncS' : ident * function;
+  external_funcS' : list (ident * fundef);
+  const_valS' : list (ident * (globvar type))
 }.

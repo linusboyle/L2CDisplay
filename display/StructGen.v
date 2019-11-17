@@ -72,19 +72,21 @@ with gen_fields (dl : displayListT) (ge : generator) : res (displayListT' * gene
       OK (dl', ge1, fl')
   end.
 
-Definition gen_ndstructs (nid : list ident) : fieldlist :=
-  List.fold_left 
-  (fun fd id => 
+Definition gen_ndstructs (nid : list ident) (main : ident) : fieldlist :=
+  List.fold_left
+  (fun fd id =>
     let in_name := Lident.acg_inc_name id in
     let out_name := Lident.acg_outc_name id in
-    Fcons in_name (mkstruct in_name) (Fcons out_name (mkstruct out_name) fd)
+    let in_fd := if peq id main then Fcons in_name (mkstruct in_name) fd else fd in
+    Fcons out_name (mkstruct out_name) in_fd
   )
   nid Fnil.
 
 Definition generate_struct (m0 : modelT) : res modelT' :=
   let ce := const_envT m0 in
-  let nid := List.map fst (PTree.elements (node_envT m0)) in
-  let sfds := gen_ndstructs nid in
+  let ne := node_envT m0 in
+  let nid := List.map fst (PTree.elements ne) in
+  let sfds := gen_ndstructs nid m0.(node_mainT) in
   let ge := mkgenerator empty_seq empty_wchecker in
   do (dis, se0, fds) <- gen_field (display m0) ge;
-  OK (mkmodelT' dis ce nid (Tstruct xH (fl_append sfds fds))).
+  OK (mkmodelT' dis ce (Tstruct Lident.display_struct_name (fl_append sfds fds)) ne (node_mainT m0)).

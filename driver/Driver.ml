@@ -62,6 +62,7 @@ let output_c_file prog path=
   ;;
 
 
+(* TODO : index wrong *)
 ignore (intern_string "acg_global_clock");; (*1*)
 ignore (intern_string "acg_global_2");; (*2*)
 ignore (intern_string "acg_global_3");; (*3*)

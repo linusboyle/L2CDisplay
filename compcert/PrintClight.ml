@@ -124,9 +124,9 @@ let rec name_cdecl id ty =
       Buffer.add_char b ')';
       name_cdecl (Buffer.contents b) res
   | Tstruct(name, fld, a) ->
-      extern_atom name ^ attributes a ^ name_optid id
+      "struct " ^ extern_atom name ^ attributes a ^ name_optid id
   | Tunion(name, fld, a) ->
-      extern_atom name ^ attributes a ^ name_optid id
+      "union " ^ extern_atom name ^ attributes a ^ name_optid id
   | Tcomp_ptr(name, a) ->
       extern_atom name ^ " *" ^ attributes a ^ id
 
@@ -408,9 +408,8 @@ let print_composite_init p il =
     il;
   fprintf p "}"
 
-(*TODO: remove typedef and allow external struct*)
 let print_struct_or_union p (name, fld) = 
-  fprintf p "@[<v 2>typedef struct {"; 
+  fprintf p "@[<v 2>struct %s {" name; 
   let rec print_fields = function
   | Fnil -> ()
   | Fcons(id, ty, rem) ->
@@ -418,7 +417,7 @@ let print_struct_or_union p (name, fld) =
      print_fields rem 
   in          
   print_fields fld;
-  fprintf p "@;<0 -2>}%s;@ "name;
+  fprintf p "@;<0 -2>};@ ";
   fprintf p "@]@ @ "
 
 let re_string_literal = Str.regexp "__stringlit_[0-9]+"
