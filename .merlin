@@ -3,6 +3,7 @@ S util
 S src
 S driver
 S display
+S parser
 S compcert
 S compcert/common
 S compcert/lib
@@ -12,6 +13,7 @@ B _build/extraction
 B _build/util
 B _build/driver
 B _build/display
+B _build/parser
 B _build/src
 B _build/compcert
 B _build/compcert/common

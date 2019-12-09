@@ -5,6 +5,7 @@ Require Import Errors.
 Require Import DisplayS.
 Require Import Maps.
 Require Import Clight.
+Require Import Ident.
 Require ClightGen.
 Require DisplaySGen.
 
@@ -126,8 +127,6 @@ Definition gen_stmts_call (ne : DisplayT.nodeenv) (main : ident) (st : type) :=
   let eles := PTree.elements ne in
   List.fold_left (gen_stmt_call main st) eles Sskip.
 
-Definition update_func_name := Lident.intern_string "update_display_ctx".
-
 Definition update_out_func_name (sn wty : ident) :=
   Lident.intern_string (String.append (Lident.extern_atom wty) (String.append "_update_and_put_" (Lident.extern_atom sn))).
 
@@ -199,4 +198,4 @@ Definition trans_model (m : modelS) : res modelS' :=
   let stmt := Ssequence (Ssequence (Ssequence stmt_in stmt_assign) stmt_ndcall) stmt_out in
   let params := (Lident.INSTRUCT, Tpointer st noattr) :: nil in
   let update_func := mkfunction Tvoid cc_default params vars nil stmt in
-  OK (mkmodelS' st m.(createFuncS) (update_func_name, update_func) (m.(external_funcS) ++ PTree.elements ex1) m.(const_valS)).
+  OK (mkmodelS' st m.(createFuncS) (update_func_name tt, update_func) (m.(external_funcS) ++ PTree.elements ex1) m.(const_valS)).

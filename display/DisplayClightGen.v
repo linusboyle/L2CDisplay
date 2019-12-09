@@ -4,6 +4,7 @@ Require Import Coqlib.
 Require Import Ctypes.
 Require Import GTree.
 Require Import Errors.
+Require Import Ident.
 Require DisplaySGen.
 Require DisplayTGen.
 Require StructGen.
@@ -28,4 +29,7 @@ Definition trans_program (model: GTree) (astS : LustreS.program): res program :=
   let st := DisplayS.structS' mS' in
   let gt := Gvar (mkglobvar st nil true true) in
   let cvars := List.map (fun it => (fst it, Gvar (snd it))) (DisplayS.const_valS' mS') in
-  OK (mkprogram (cvars ++ (Lident.display_struct_name, gt) :: efs ++ (cn, createf) :: (un, updatef) :: nil) xH).
+  OK (mkprogram (cvars ++ (display_struct_name tt, gt) :: efs ++ (cn, createf) :: (un, updatef) :: nil) xH).
+
+Definition merge (c1 c2 : program) : program :=
+  mkprogram (c1.(prog_defs) ++ c2.(prog_defs)) c2.(prog_main).

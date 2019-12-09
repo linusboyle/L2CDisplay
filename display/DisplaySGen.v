@@ -6,6 +6,7 @@ Require Import DisplayS.
 Require Import DisplayT.
 Require Import Errors.
 Require Import Maps.
+Require Import Ident.
 Require ClightGen.
 Require StructGen.
 
@@ -68,28 +69,29 @@ Definition get_widget_type (wn : ident) : type :=
 Definition ext_gen (wn : ident) (len : nat) : ident * typelist :=
   let fn := Lident.intern_string (String.append "create_" (Lident.extern_atom wn)) in
   let sub_list := voidlist_gen len Tnil in
-  (fn, Tcons (get_widget_type wn) sub_list).
+  (fn, Tcons (Tpointer (get_widget_type wn) noattr) sub_list).
 
-Definition get_field_expr (d : displayT') (st : type) : expr :=
+Definition get_field_expr (first: bool) (d : displayT') (st : type) : expr :=
   match d with
   | TNode (wn, wid) dl sl =>
     let deref_expr := Ederef (Evar Lident.INSTRUCT (Tpointer st noattr)) st in
     let wty := get_widget_type wn in
     let field_expr := Efield deref_expr wid wty in
-    field_expr
+    if first then Eaddrof field_expr (Tpointer wty noattr)
+    else field_expr
   end.
 
 Fixpoint get_field_exprs (dl : displayListT') (st : type) : list expr :=
   match dl with
   | TNil => nil
-  | TCons d dl' => get_field_expr d st :: get_field_exprs dl' st
+  | TCons d dl' => get_field_expr false d st :: get_field_exprs dl' st
   end.
 
 Fixpoint create_gen (d : displayT') (fe : extenv) (st : type) : res (statement * extenv) :=
   match d with
   | TNode (wn, wid) dl sl =>
       do (st0, fe0) <- create_gens dl fe st;
-      let params := (get_field_expr d st) :: get_field_exprs dl st in
+      let params := (get_field_expr true d st) :: get_field_exprs dl st in
       do (fn, tylist) <-
         match fe0 ! wn with
         | None => OK (ext_gen wn (DisplayT.length dl))
@@ -115,8 +117,6 @@ Fixpoint trans_const (cv : ident * globvar Cltypes.type) : ident * globvar type 
   let gv := snd cv in
   (nm, mkglobvar (ClightGen.trans_type gv.(gvar_info)) gv.(gvar_init) gv.(gvar_readonly) gv.(gvar_volatile)).
 
-Definition create_func_name := Lident.intern_string "create_display_ctx".
-
 Definition trans_model (mt : modelT') : res modelS :=
   let st := ClightGen.trans_type (structT mt) in
   let cvals := List.map trans_const (PTree.elements (const_envT' mt)) in
@@ -125,4 +125,4 @@ Definition trans_model (mt : modelT') : res modelS :=
   do (stmts1, exts) <- create_gen (display' mt) empty_extenv st;
   let params := (Lident.INSTRUCT, Tpointer st noattr) :: nil in
   let func := mkfunction Tvoid cc_default params nil nil (Ssequence stmts0 stmts1) in
-  OK (mkmodelS (to_widget (display' mt) nil) (List.map snd (PTree.elements exts)) (create_func_name, func) cvals (node_envT' mt) (node_mainT' mt) st).
+  OK (mkmodelS (to_widget (display' mt) nil) (List.map snd (PTree.elements exts)) (create_func_name tt, func) cvals (node_envT' mt) (node_mainT' mt) st).

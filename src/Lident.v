@@ -82,8 +82,6 @@ Definition acg_context_name(id: ident): ident :=   (**r acg_context<num>*)
 Definition acg_temp_name(id: ident): ident :=   (**r acg_L<num>*)
   intern_string (String.append ("acg_L") (string_of_positive id)).
 
-Definition display_struct_name := Lident.intern_string "display_ctx".
-
 Definition Plt (x y: positive): Prop := Zlt (Zpos x) (Zpos y).
 Definition Ple (p q: positive) := Zle (Zpos p) (Zpos q).
 

@@ -178,14 +178,15 @@ let translate fn=
 
   let path = output_path main mfn in
 
-  let () = if !display_file = "" then () else 
+  let dastC = if !display_file = "" then None else 
       match parser_display_mode !display_file with
-      | None -> ()
+      | None -> None
       | Some model ->
         begin match DisplayClightGen.trans_program model astS with
-        | Errors.OK astC -> output_c_file astC (path ^ "_display") 
+        | Errors.OK astC -> Some astC 
         | Errors.Error msg ->
             print_error stderr msg;
+            None
         end
   in
 
@@ -214,7 +215,10 @@ let translate fn=
         exit 2 in
   (* Print Clight *)
   if !flag_ctemp then ()
-  else output_c_file astC path;
+  else 
+      match dastC with 
+      | None -> output_c_file astC path
+      | Some dC -> output_c_file (DisplayClightGen.merge astC dC) path
   ;;
 
 let parse_command () =

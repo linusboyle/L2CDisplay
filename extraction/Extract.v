@@ -80,4 +80,5 @@ Extract Constant LustreWGen.real_of_str =>
 Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program
   LustreVGen.trans_program LustreWGen.trans_program 
-  TransTypeName.trans_program DisplayClightGen.trans_program.
+  TransTypeName.trans_program DisplayClightGen.trans_program
+  DisplayClightGen.merge.

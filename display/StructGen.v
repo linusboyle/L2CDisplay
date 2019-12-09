@@ -5,6 +5,7 @@ Require Import Coqlib.
 Require Import LustreSGen.
 Require Import Errors.
 Require Import DisplayT.
+Require Import Ident.
 
 Definition seq := PTree.t positive.
 Definition empty_seq := PTree.empty positive.
@@ -89,4 +90,4 @@ Definition generate_struct (m0 : modelT) : res modelT' :=
   let sfds := gen_ndstructs nid m0.(node_mainT) in
   let ge := mkgenerator empty_seq empty_wchecker in
   do (dis, se0, fds) <- gen_field (display m0) ge;
-  OK (mkmodelT' dis ce (Tstruct Lident.display_struct_name (fl_append sfds fds)) ne (node_mainT m0)).
+  OK (mkmodelT' dis ce (Tstruct (display_struct_name tt) (fl_append sfds fds)) ne (node_mainT m0)).
