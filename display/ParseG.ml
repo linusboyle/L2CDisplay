@@ -36,17 +36,21 @@ and parse_attrs attrlist =
         | _ -> ta
 
 and parse_attr name str =
-    let ref_reg = Str.regexp "@\\([_a-zA-Z][_a-zA-Z0-9]+\\)\\.\\([_a-zA-Z][_a-zA-Z0-9]+\\)" in
+    (*let ref_reg = Str.regexp "@\\([_a-zA-Z][_a-zA-Z0-9]+\\)\\.\\([_a-zA-Z][_a-zA-Z0-9]+\\)" in*)
     let attrid = intern_string name in
-    if Str.string_match ref_reg str 0 then
-        (*node reference *)
-        let nd = Str.matched_group 1 str in
-        let pa = Str.matched_group 2 str in
-        SNodeRef (attrid, (intern_string nd), (intern_string pa))
-    else
-        (*const*)
-        let strid = intern_string str in
-        SConst (attrid, (GString strid))
+    let valid = intern_string str in
+    AttrVal (attrid, valid)
+    (*
+     *if Str.string_match ref_reg str 0 then
+     *    (*node reference *)
+     *    let nd = Str.matched_group 1 str in
+     *    let pa = Str.matched_group 2 str in
+     *    SNodeRef (attrid, (intern_string nd), (intern_string pa))
+     *else
+     *    (*const*)
+     *    let strid = intern_string str in
+     *    SConst (attrid, (GString strid))
+     *)
 
 let parse_xml_from_file filename =
     let spec = Pxp_tree_parser.default_spec in
