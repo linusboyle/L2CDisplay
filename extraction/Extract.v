@@ -11,6 +11,7 @@ Require Parser.
 Require Tokenizer.
 Require DisplayClightGen.
 Require GTree.
+Require LDisplay.
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
@@ -55,6 +56,7 @@ Cd "extraction".
 
 
 Extract Constant Tree.str => "string".
+Extract Constant LDisplay.str => "string".
 
 Extract Constant Tokenizer.str => "string".
 Extract Constant Parser.intern_string =>
@@ -81,4 +83,4 @@ Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program
   LustreVGen.trans_program LustreWGen.trans_program 
   TransTypeName.trans_program DisplayClightGen.trans_program
-  DisplayClightGen.merge.
+  DisplayClightGen.merge LDisplay.

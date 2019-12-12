@@ -65,7 +65,7 @@ PARSERVALID= Alphabet.v Tuples.v Grammar.v Automaton.v Validator_safe.v Validato
 
 DRIVER=Tree.v TransTypeName.v LustreWGen.v Compiler.v
 
-DISPLAY=DisplayClightGen.v GTree.v DisplayT.v DisplayTGen.v StructGen.v DisplayS.v DisplaySGen.v UpdateGen.v Ident.v
+DISPLAY=DisplayClightGen.v GTree.v DisplayT.v DisplayTGen.v StructGen.v DisplayS.v DisplaySGen.v UpdateGen.v Ident.v LDisplay.v
 
 PARSER=Parser.v Tokenizer.v
 
@@ -145,4 +145,4 @@ coqide:
 	coqide $(INCLUDES)
 
 test:
-	$(OCAMLBUILD) $(OCB_OPTIONS) DumpG.native
+	$(OCAMLBUILD) $(OCB_OPTIONS) TestParse.native
