@@ -2,16 +2,12 @@ Require AST.
 Require Floats.
 Require String.
 Require Maps.
-Require Tree.
-Require TransTypeName.
-Require LustreWGen.
+Require LDisplay.
+Require TransType.
 Require Compiler.
 Require Errors.
-Require Parser.
-Require Tokenizer.
-Require DisplayClightGen.
-Require GTree.
-Require LDisplay.
+Require DisplayWGen.
+Require LustreWGenDis.
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
@@ -55,32 +51,19 @@ Extract Constant Lident.extern_atom =>
 Cd "extraction".
 
 
-Extract Constant Tree.str => "string".
 Extract Constant LDisplay.str => "string".
 
-Extract Constant Tokenizer.str => "string".
-Extract Constant Parser.intern_string =>
-  "Obj.magic (fun s -> Camlcoq.intern_string s)".
-Extract Constant Parser.ocaml_string =>
-  "(fun s -> Camlcoq.camlstring_of_coqstring s)".
-Extraction "Parser.ml" Parser.p_Program Tokenizer.get_token.
+Extract Constant TransType.nullstr => """""".
 
-Extract Constant TransTypeName.nullstr => """""".
-
-Extract Constant LustreWGen.zero => """0""".
-Extract Constant LustreWGen.bool_of_str => 
+Extract Constant DisplayWGen.zero => """0""".
+Extract Constant DisplayWGen.bool_of_str => 
   "fun s -> bool_of_string s".
-Extract Constant LustreWGen.int_of_str => 
+Extract Constant DisplayWGen.int_of_str => 
   "fun s -> Camlcoq.coqint_of_camlint(Int32.of_string s)".
-Extract Constant LustreWGen.char_of_str => 
-  "fun s -> Camlcoq.coqint_of_camlint (Int32.of_int (int_of_char s.[0]))".
-Extract Constant LustreWGen.float_of_str => 
-  "fun s -> Camlcoq.coqfloat32_of_camlfloat(float_of_string s)".
-Extract Constant LustreWGen.real_of_str => 
+Extract Constant DisplayWGen.real_of_str => 
   "fun s -> Camlcoq.coqfloat_of_camlfloat(float_of_string s)".
 
 Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program
-  LustreVGen.trans_program LustreWGen.trans_program 
-  TransTypeName.trans_program DisplayClightGen.trans_program
-  DisplayClightGen.merge LDisplay.
+  LustreVGen.trans_program LustreWGenDis.trans_program 
+  TransType.trans_program DisplayWGen.trans_program.

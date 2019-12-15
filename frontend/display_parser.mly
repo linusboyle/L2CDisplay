@@ -45,7 +45,7 @@
 
 %token NOT ADD MINUS MUL DIVF DIV MOD AND OR XOR LESEQ GREEQ NE EQ LES GRE
 
-%left IF THEN ELSE ARROW
+%left IF THEN ELSE ARROW FBY
 %left OR XOR
 %left AND
 %right NOT
@@ -212,10 +212,21 @@ eqStmtsY:
 ;
 
 eqStmtY:
-	    lhsLY EQ exprY SEMICOLON
+	    lhsY EQ rhsY SEMICOLON
 		{EqStmt($1, $3)}
-	|   lhsLY EQ simplFbyExprY SEMICOLON
-        {EqStmt($1, $3)}
+;
+
+rhsY:
+        simplFbyExprY
+        {RVExpr $1}
+    |   exprY
+        {RVExpr $1}
+    |   megaY
+        {RVMega $1}
+
+lhsY:
+        megaY           {LVMega $1}
+	|   lhsLY			{LVIdent $1}
 ;
 
 lhsLY:
@@ -225,9 +236,7 @@ lhsLY:
 ;
 
 lhs:
-		IDENT			{LVIdent { name = $1; key = intern_string $1 }}
-    |   megaY           {LVMega $1}
-;
+        IDENT           {{name = $1; key = intern_string $1}}
 
 megaY:
         MEGA DOT IDENT  {Mega ({ name = $1; key = intern_string $1}, { name = $3; key = intern_string $3})}
@@ -451,7 +460,6 @@ exprY:
 	|	callY			{$1}
 	|	dieseExprY			{$1}
 	|	norExprY			{$1}
-    |   megaY       {MegaExpr $1}
 ;
 
 

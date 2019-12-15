@@ -1,8 +1,7 @@
 FLOCQDIR=compcert/flocq
 
 DIRS=compcert compcert/lib compcert/common compcert/ia32 display src driver frontend util \
-	 $(FLOCQDIR)/Core $(FLOCQDIR)/Prop $(FLOCQDIR)/Calc $(FLOCQDIR)/Appli \
-	 parser parser/validator
+	 $(FLOCQDIR)/Core $(FLOCQDIR)/Prop $(FLOCQDIR)/Calc $(FLOCQDIR)/Appli
 
 INCLUDES=$(patsubst %,-I %, $(DIRS))
 
@@ -24,7 +23,7 @@ OCB_OPTIONS=\
 VPATH=$(DIRS)
 GPATH=$(DIRS)
 
-TARGET=Driver.native
+TARGET=Display.native
 
 # Flocq
 FLOCQ_CORE=Fcore_float_prop.v Fcore_Zaux.v Fcore_rnd_ne.v Fcore_FTZ.v \
@@ -60,18 +59,12 @@ LF2C=CtempGen.v ClightGen.v  CtempProof.v CtempGenProof.v Csem.v ClightGenProof.
 LUSTRE2C=Lident.v Ltypes.v Lop.v Lustre.v LustreV.v LustreW.v LustreS.v LustreR.v LustreF.v \
   Cltypes.v Clop.v Ctemp.v Ctypes.v Cop.v Clight.v $(SEMANTICS) $(PROOFS) $(LV2LS) $(TOPOSORT) $(LS2LR) $(LR2F) $(LF2C)
 
-PARSERVALID= Alphabet.v Tuples.v Grammar.v Automaton.v Validator_safe.v Validator_complete.v \
-  Interpreter.v Interpreter_correct.v Interpreter_complete.v Interpreter_safe.v Main.v
+DRIVER=Compiler.v
 
-DRIVER=Tree.v TransTypeName.v LustreWGen.v Compiler.v
+DISPLAY=LDisplay.v MarkUp.v \
+		DisplayW.v DisplayWGen.v LustreWGenDis.v TransType.v
 
-DISPLAY=DisplayClightGen.v GTree.v DisplayT.v DisplayTGen.v StructGen.v DisplayS.v DisplaySGen.v UpdateGen.v Ident.v LDisplay.v
-
-PARSER=Parser.v Tokenizer.v
-
-GENERATED=parser/Parser.v
-
-FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(PARSERVALID) $(DRIVER) $(FLOCQ) $(DISPLAY) $(PARSER)
+FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(DRIVER) $(FLOCQ) $(DISPLAY)
 
 .PHONY: depend proof extraction parser test coqide
 
@@ -96,9 +89,7 @@ doc/coq2html: doc/coq2html.ml
 doc/coq2html.ml: doc/coq2html.mll
 	ocamllex -q doc/coq2html.mll
 
-depend: $(GENERATED) depend1
-
-depend1: $(FILES)
+depend: $(FILES)
 	@echo "Analyzing Coq Dependencies.."
 	@$(COQDEP) $^ > .depend
 
@@ -109,17 +100,10 @@ proof: $(FILES:.v=.vo)
 	@echo "COQC $*.v"
 	@$(COQC) -dump-glob doc/$(*F).glob $*.v
 
-parser/Parser.v : parser/Parser.vy
-	@rm -f $@
-	$(MENHIR) --coq parser/Parser.vy
-	@chmod a-w $@
-
 -include .depend
 
 parser:
 	$(MAKE) -C frontend
-	ocamllex parser/Lexer.mll
-	mv parser/Lexer.ml extraction
 
 extraction: extraction/STAMP
 

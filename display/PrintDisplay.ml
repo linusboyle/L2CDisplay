@@ -62,11 +62,6 @@ let clockOut = function
 let names_of_idents idents =
   List.map (fun id -> id.name) idents
 
-let names_of_lhs lhs =
-    match lhs with
-    | LVIdent id -> id.name
-    | LVMega (Mega (wgt, field)) -> Printf.sprintf "$%s.%s" wgt.name field.name
-
 let rec kindOut = function
   | AtomType Bool -> "bool"
   | AtomType Int -> "int"
@@ -100,7 +95,6 @@ let rec lus_exprOut = function
   | Call (id, el) -> Printf.sprintf "%s(%s)" (id.name) (lus_listExprOut el)
   | DieseExpr e -> Printf.sprintf "#(%s)" (lus_exprOut e)
   | NorExpr e -> Printf.sprintf "nor(%s)" (lus_exprOut e)
-  | MegaExpr (Mega (wgt, field)) -> Printf.sprintf "$%s.%s" wgt.name field.name
 
 and lus_nameConstructExprOut = function
   | NamesNil -> ""
@@ -112,9 +106,17 @@ and lus_listExprOut = function
   | Econs (c, Enil) -> lus_exprOut c
   | Econs (c, cl) -> Printf.sprintf "%s, %s" (lus_exprOut c) (lus_listExprOut cl)
 
+let lus_rhsOut = function
+    | RVMega (Mega (wgt, field)) -> Printf.sprintf "$%s.%s" wgt.name field.name
+    | RVExpr e -> lus_exprOut e
+
+let lus_lhsOut = function
+    | LVMega (Mega (wgt, field)) -> Printf.sprintf "$%s.%s" wgt.name field.name
+    | LVIdent ids -> String.concat ", " (names_of_idents ids)
+
 let lus_eqOut = function
-    EqStmt (lhsl, e) -> 
-      Printf.sprintf "%s = %s" (indent 2 (String.concat "," (List.map names_of_lhs lhsl))) (lus_exprOut e)
+    EqStmt (lhs, rhs) ->
+      Printf.sprintf "%s = %s" (indent 2 (lus_lhsOut lhs)) (lus_rhsOut rhs)
 
 let lus_eqsOut eqs =
   String.concat "\n" [

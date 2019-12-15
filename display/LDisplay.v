@@ -5,7 +5,7 @@ Require Import String.
 Definition str := string.
 Record ident := { name: str; key: BinNums.positive }.
 
-Inductive singleclock :=
+Inductive singleclock : Type :=
   | Clock : bool -> ident -> singleclock
   | NOCLOCK : singleclock.
 
@@ -91,7 +91,6 @@ Inductive expr : Type :=
   | Call : ident -> exprlist -> expr
   | DieseExpr : expr -> expr
   | NorExpr : expr -> expr
-  | MegaExpr : mega -> expr
 
 with exprlist : Type :=
   | Enil : exprlist
@@ -102,11 +101,15 @@ with namelist : Type :=
   | NamesCons : ident -> expr -> namelist -> namelist.
 
 Inductive lhs : Type :=
-  | LVIdent : ident -> lhs
+  | LVIdent : list ident -> lhs
   | LVMega : mega -> lhs.
 
+Inductive rhs : Type :=
+  | RVExpr : expr -> rhs
+  | RVMega : mega -> rhs.
+
 Inductive eqStmt : Type :=
-  | EqStmt : list lhs -> expr -> eqStmt.
+  | EqStmt : lhs -> rhs -> eqStmt.
 
 Inductive varBlk : Type :=
   | VarList : list (ident * kind * singleclock) -> varBlk.
