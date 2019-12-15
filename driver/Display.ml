@@ -102,6 +102,13 @@ let translate fn=
 
   if !flag_print_parse then print_string (PrintDisplay.lus_output ast) else ();
 
+  print_endline !display_file;
+  let markup = 
+      match ParseXml.parse_from_file (!display_file) with
+      | None -> exit 2
+      | Some xml -> xml
+  in
+
   let ast' = 
     match TransType.trans_program ast with
     | Errors.OK p -> p
@@ -117,7 +124,7 @@ let translate fn=
 	exit 2 in
 
   let (astw, extinfo) =
-    match LustreWGenDis.trans_program asti with
+    match LustreWGenDis.trans_program asti markup with
     | Errors.OK p -> p
     | Errors.Error msg ->
         print_error stderr msg;

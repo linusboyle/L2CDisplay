@@ -16,6 +16,27 @@ with instanceTree : Type :=
   | INil : instanceTree
   | ICons : markUp -> instanceTree -> instanceTree.
 
+Definition idenv := PTree.t ident.
+Definition empty_idenv := PTree.empty ident.
+
+Fixpoint generate_idenv (m : markUp) (ie : idenv) : idenv :=
+  match m with
+  | GraphicsHierarchy wgt subl =>
+    match wgt_id wgt with
+    | None => generate_idenvs subl ie
+    | Some id =>
+        let ie0 := PTree.set id wgt.(wgt_name) ie in
+        generate_idenvs subl ie0
+    end
+  end
+with generate_idenvs (it : instanceTree) (ie : idenv) : idenv :=
+  match it with
+  | INil => ie
+  | ICons m subl =>
+      let ie0 := generate_idenv m ie in
+      generate_idenvs subl ie0
+  end.
+
 (* distribute unique widget number *)
 Fixpoint generate_num (ne : positive) (m0 : markUp) : positive * markUp :=
   match m0 with
@@ -78,5 +99,6 @@ Definition megaenvW : Type := general_megaenv meta_infoW.
 
 Record extinfoW : Type := mkext {
   wgt_itfW : widgetenv;  
-  wgt_relationW : megaenvW (* here, relation means the dependency between gui events/parameters and clight variables *)
-}. 
+  wgt_relationW : megaenvW; (* here, relation means the dependency between gui events/parameters and clight variables *)
+  wgt_idenvW : idenv (* map between widget id and widget name *)
+}.

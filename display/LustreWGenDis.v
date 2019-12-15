@@ -64,55 +64,63 @@ Definition get_mega_info_rhs (mg : ident * ident) (we : widgetenv) : res (typeL 
 
 Local Open Scope error_monad_scope.
 
-Definition register_lhs (gel : generator) (lhs : ctrl_lhs) : res generator :=
+Definition get_wgt_name (wgid : ident) (ie : idenv) : res ident :=
+  match ie ! wgid with
+  | None => Error (MSG "The instance " :: CTX wgid :: MSG " is not found" :: nil)
+  | Some wgty => OK wgty
+  end.
+
+Definition register_lhs (gel : generator) (lhs : ctrl_lhs) (ie : idenv) : res generator :=
   match lhs with
   | IdentT va => OK gel
-  | MegaLhsT (MegaT wg fd) =>
-      match find (wg, fd) gel.(me) with
+  | MegaLhsT (MegaT wgid fd) =>
+      match find (wgid, fd) gel.(me) with
       | None => 
-          do (ty, ck) <- get_mega_info_lhs (wg, fd) gel.(we);
+          do wgtn <- get_wgt_name wgid ie;
+          do (ty, ck) <- get_mega_info_lhs (wgtn, fd) gel.(we);
           let info := mkinfo (ctrl_param_name gel.(next_id)) ty ck in
-          let me' := add (wg, fd) info gel.(me) in
+          let me' := add (wgid, fd) info gel.(me) in
           OK (mkgenerator me' (Psucc gel.(next_id)) gel.(we))
       | Some _ => OK gel
       end
   end.
 
-Definition register_rhs (ger : generator) (rhs : ctrl_exprT) : res generator :=
+Definition register_rhs (ger : generator) (rhs : ctrl_exprT) (ie : idenv) : res generator :=
   match rhs with
   | ExprT expr => OK ger
-  | MegaExprT (MegaT wg fd) =>
-      match find (wg, fd) ger.(me) with
-      | None => 
-          do (ty, ck) <- get_mega_info_rhs (wg, fd) ger.(we);
+  | MegaExprT (MegaT wgid fd) =>
+      match find (wgid, fd) ger.(me) with
+      | None =>
+          do wgtn <- get_wgt_name wgid ie;
+          do (ty, ck) <- get_mega_info_rhs (wgtn, fd) ger.(we);
           let info := mkinfo (ctrl_return_name ger.(next_id)) ty ck in
-          let me' := add (wg, fd) info ger.(me) in
+          let me' := add (wgid, fd) info ger.(me) in
           OK (mkgenerator me' (Psucc ger.(next_id)) ger.(we))
       | Some _ => OK ger
       end
   end.
 
-Definition register_equation (gel ger : generator) (eq : ctrl_equationT) : res (generator * generator) :=
+Definition register_equation (gel ger : generator) (eq : ctrl_equationT) (ie : idenv) : res (generator * generator) :=
   match eq with
   | CtrlEquationT lhs rhs =>
-      do gel' <- register_lhs gel lhs;
-      do ger' <- register_rhs ger rhs;
+      do gel' <- register_lhs gel lhs ie;
+      do ger' <- register_rhs ger rhs ie;
       OK (gel', ger')
   end.
 
-Fixpoint register_equations (gel ger : generator) (eql : list ctrl_equationT) : res (generator * generator) :=
+Fixpoint register_equations (gel ger : generator) (eql : list ctrl_equationT) (ie : idenv) : res (generator * generator) :=
   match eql with
   | nil => OK (gel, ger)
   | h :: t =>
-    do (gel', ger') <- register_equation gel ger h;
-    register_equations gel' ger' t
+    do (gel', ger') <- register_equation gel ger h ie;
+    register_equations gel' ger' t ie
   end.
 
-Definition register_generators (ct : ctrlT) (we : widgetenv) : res (generator * generator) :=
+Definition register_generators (ct : ctrlT) (we : widgetenv) (ie : idenv) : res (generator * generator) :=
   match ct with
   | CtrlT id varbk eqs =>
       let ge0 := mkgenerator nil xH we in 
-      register_equations ge0 ge0 eqs
+      register_equations ge0 ge0 eqs ie
   end.
 
 Definition trans_info (m : meta_info) : ident * typeL * clock := (m.(mid), m.(mty), m.(mclk)).
@@ -148,7 +156,7 @@ Definition trans_eq (gel ger : generator) (eq : ctrl_equationT) : res equationT 
   end.
 
 (* translate controller to normal node, and produce metainfo *)
-Definition trans_ctrl (ct : ctrlT) (gel ger: generator) : res (nodeT * extinfoW) :=
+Definition trans_ctrl (ct : ctrlT) (gel ger: generator) (ie : idenv) : res (nodeT * extinfoW ) :=
   match ct with
   | CtrlT id varbk eqs =>
       do eqs' <- mmap (trans_eq gel ger) eqs;
@@ -158,7 +166,7 @@ Definition trans_ctrl (ct : ctrlT) (gel ger: generator) : res (nodeT * extinfoW)
         the two megaenv is merged directly 
         the collision check is done in Lustre compiler
       *)
-      let ex := mkext gel.(we) (gel.(me) ++ ger.(me)) in
+      let ex := mkext gel.(we) (gel.(me) ++ ger.(me)) ie in
       OK (NodeT true id params returns varbk eqs', ex)
   end.
 
@@ -291,10 +299,11 @@ Definition trans_node (nd : nodeT) : LustreW.nodeT :=
 
 Definition trans_nodeblk (nds : list nodeT) : list LustreW.nodeT := map trans_node nds.
 
-Definition trans_program (p : programT) : res (LustreW.programT * extinfoW) :=
+Definition trans_program (p : programT) (m : markUp) : res (LustreW.programT * extinfoW) :=
   let we := p.(widget_blockT) in
-  do (gel, ger) <- register_generators p.(controlT) we;
-  do (main_nd, ext) <- trans_ctrl p.(controlT) gel ger;
+  let ie := generate_idenv m empty_idenv in
+  do (gel, ger) <- register_generators p.(controlT) we ie;
+  do (main_nd, ext) <- trans_ctrl p.(controlT) gel ger ie;
   let nds := main_nd :: p.(node_blockT) in
   let p' := LustreW.mkprogramT (trans_typeblk p.(type_blockT)) (trans_constblk p.(const_blockT)) (trans_nodeblk nds) p.(node_mainT) in
   OK (p', ext).
