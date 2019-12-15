@@ -50,16 +50,16 @@ Definition get_mega_info_lhs (mg : ident * ident) (we : widgetenv) : res (typeL 
   let (kw, kf) := mg in
   match we ! kw with
   | None => Error (MSG "widget " :: CTX kw :: MSG " not found" :: nil)
-  | Some (WidgetT id params returns) =>
-      find_info kf returns
+  | Some (WidgetT id params events) =>
+      find_info kf params
   end.
 
 Definition get_mega_info_rhs (mg : ident * ident) (we : widgetenv) : res (typeL * clock) :=
   let (kw, kf) := mg in
   match we ! kw with
   | None => Error (MSG "widget " :: CTX kw :: MSG " not found" :: nil)
-  | Some (WidgetT id params returns) =>
-      find_info kf params
+  | Some (WidgetT id params events) =>
+      find_info kf events
   end.
 
 Local Open Scope error_monad_scope.
