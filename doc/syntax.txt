@@ -1,0 +1,110 @@
+<program> ::= {<decl>}*
+<decl> ::=
+    | <type_decl>
+    | <const_decl>
+    | <node_decl>
+    | <widget_decl>
+    | <control_decl>
+
+<type_decl> ::= type <type_decl_list>
+<type_decl_list> ::= {<one_type_decl> ";"}+
+<one_type_decl> ::= IDENT "=" <type>
+<type> ::= 
+    | IDENT
+    | bool
+    | int
+    | real
+    | enum "{" <id_list> "}"
+    | struct "{" <field_list> "}"
+    | <type> "^" INTEGER
+
+<field_list> ::= <field> {"," <field>}*
+<field> ::= IDENT ":" <type>
+<id_list> ::= IDENT {"," IDENT}*
+
+<const_decl> ::= const {<one_const_decl> ";"}+
+<one_const_decl> ::= IDENT ":" <type> "=" <const_expr>
+<const_expr> ::= 
+    | <atom>
+    | <unop> <const_expr>
+    | <const_expr> <binop> <const_expr>
+    | "(" <const_expr> ")"
+    | "[" <const_expr> {"," <const_expr>}* "]"
+    | "{" <field_const_decl> {"," <field_const_decl>}* "}"
+<atom> ::=
+    | true
+    | false
+    | INTEGER
+    | REAL
+    | IDENT // constant identifier, or an enum constants
+<field_const_decl> ::= IDENT ":" <const_expr>
+
+<node_decl> ::= <funcType> IDENT "(" <decls> ")" returns "(" <decls> ")" <body>
+<widget_decl> ::= widget IDENT "(" <decls> ")" returns "(" <decls> ")" ";"
+<control_decl> ::= ctrl IDENT "(" ")" returns "(" ")" <control_body>
+<funcType> ::= node | function
+<decls> ::= [<var_decl> {";" <var_decl>}*]
+<var_decl> ::= <id_list> ":" <type>
+<body> ::= [var <decls> ";"] let <equation>+ tel [";"]
+<control_body> ::= [var <decls> ";"] let <control_equation>+ tel [";"]
+
+<equation> ::= <lhs> "=" <expr> ";"
+<control_equation> ::= <control_lhs> "=" <control_rhs> ";"
+<lhs> ::= IDENT {"," IDENT}*
+<widget_expr> ::= MEGA "." IDENT
+<control_lhs> ::= <lhs> | <widget_expr>
+<control_rhs> ::= <expr> | <widget_expr>
+<expr> ::=
+    | <atom>
+    | "(" <expr_list> ")"
+    | <unop> <expr>
+    | pre <expr>
+    | current <expr>
+    | <expr> fby <expr>
+    | <expr> "->" <expr>
+    | <expr> <binop> <expr>
+    | <naryop> <expr>
+    | <struct_expr>
+    | <array_expr>
+    | <call>
+    | if <expr> then <expr> else <expr>
+
+<call> ::= IDENT "(" <expr_list> ")"
+<expr_list> ::= <expr> {"," <expr>}*
+<array_expr> ::= 
+    | <expr> <index>
+    | <expr> "^" INTEGER
+    | "[" <expr_list> "]"
+    | <expr> "[" <expr> ".." <expr> "]"
+
+<index> ::= "[" <expr> "]"
+<struct_expr> ::=
+    | <expr> "." IDENT
+    | "{" <field_expr> {"," <field_expr>}* "}"
+<field_expr> ::= IDENT ":" <expr>
+
+<unop> ::=
+    | "+"
+    | "-"
+    | not 
+
+<binop> ::=
+    | "+"
+    | "-"
+    | "*"
+    | "/"
+    | div
+    | mod
+    | ">"
+    | "<"
+    | ">="
+    | "<-"
+    | "<>"
+    | "="
+    | or
+    | and
+    | xor
+
+<naryop> ::=
+    | "#"
+    | nor
