@@ -89,7 +89,7 @@ Definition register_lhs (gel : generator) (lhs : ctrl_lhs) (ie : idenv) : res ge
           do wgtn <- get_wgt_name wgid ie;
           do (ty, ck) <- get_mega_info_lhs (wgtn, fd) gel.(we);
           do ck' <- check_clock_refs ck wgid gel;
-          let info := mkinfo (ctrl_return_name gel.(next_id)) ty ck in
+          let info := mkinfo (ctrl_return_name gel.(next_id)) ty ck' in
           let me' := add (wgid, fd) info gel.(me) in
           OK (mkgenerator me' (Psucc gel.(next_id)) gel.(we))
       | Some _ => OK gel
@@ -105,7 +105,7 @@ Definition register_rhs (ger : generator) (rhs : ctrl_exprT) (ie : idenv) : res 
           do wgtn <- get_wgt_name wgid ie;
           do (ty, ck) <- get_mega_info_rhs (wgtn, fd) ger.(we);
           do ck' <- check_clock_refs ck wgid ger;
-          let info := mkinfo (ctrl_param_name ger.(next_id)) ty ck in
+          let info := mkinfo (ctrl_param_name ger.(next_id)) ty ck' in
           let me' := add (wgid, fd) info ger.(me) in
           OK (mkgenerator me' (Psucc ger.(next_id)) ger.(we))
       | Some _ => OK ger

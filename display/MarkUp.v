@@ -81,7 +81,7 @@ Definition add  (key : ident * ident) (id : G) (me : general_megaenv) : general_
 
 Definition eqb_mega (op1 : ident * ident) (op2 : ident * ident) : bool :=
   let (kw, kf) := op1 in
-  let (kw', kf') := op1 in
+  let (kw', kf') := op2 in
   andb (peq kw kw') (peq kf kf').
 
 Fixpoint find (key : ident * ident) (me : general_megaenv) : option G :=
