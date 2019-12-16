@@ -98,7 +98,8 @@ Definition meta_infoW := general_info typeL Lustre.clock.
 Definition megaenvW : Type := general_megaenv meta_infoW.
 
 Record extinfoW : Type := mkext {
-  wgt_itfW : widgetenv;  
-  wgt_relationW : megaenvW; (* here, relation means the dependency between gui events/parameters and clight variables *)
+  wgt_itfW : widgetenv;
+  ctrl_paramW : megaenvW; (* this is the mapping from widget id and widget event name to metainfo, it stands for control node input *)
+  ctrl_returnW : megaenvW; (* likewise, stands for widget params and control node output *)
   wgt_idenvW : idenv (* map between widget id and widget name *)
 }.

@@ -46,6 +46,16 @@ Fixpoint find_info (field : ident) (va : vars) : res (typeL * clock) :=
       else find_info field t
   end.
 
+Definition check_clock_ref (wid : ident) (ge : generator) (ck : bool * ident) : res (bool * ident) :=
+  let (ct, ref) := ck in
+  match find (wid, ref) ge.(me) with
+  | None => Error (msg "the clock dependency is not satisfied in control node!")
+  | Some info =>
+      OK (ct, info.(mid))
+  end.
+
+Definition check_clock_refs (ck : clock) (wid : ident) (ge : generator) : res clock := mmap (check_clock_ref wid ge) ck.
+
 Definition get_mega_info_lhs (mg : ident * ident) (we : widgetenv) : res (typeL * clock) :=
   let (kw, kf) := mg in
   match we ! kw with
@@ -78,7 +88,8 @@ Definition register_lhs (gel : generator) (lhs : ctrl_lhs) (ie : idenv) : res ge
       | None => 
           do wgtn <- get_wgt_name wgid ie;
           do (ty, ck) <- get_mega_info_lhs (wgtn, fd) gel.(we);
-          let info := mkinfo (ctrl_param_name gel.(next_id)) ty ck in
+          do ck' <- check_clock_refs ck wgid gel;
+          let info := mkinfo (ctrl_return_name gel.(next_id)) ty ck in
           let me' := add (wgid, fd) info gel.(me) in
           OK (mkgenerator me' (Psucc gel.(next_id)) gel.(we))
       | Some _ => OK gel
@@ -93,7 +104,8 @@ Definition register_rhs (ger : generator) (rhs : ctrl_exprT) (ie : idenv) : res 
       | None =>
           do wgtn <- get_wgt_name wgid ie;
           do (ty, ck) <- get_mega_info_rhs (wgtn, fd) ger.(we);
-          let info := mkinfo (ctrl_return_name ger.(next_id)) ty ck in
+          do ck' <- check_clock_refs ck wgid ger;
+          let info := mkinfo (ctrl_param_name ger.(next_id)) ty ck in
           let me' := add (wgid, fd) info ger.(me) in
           OK (mkgenerator me' (Psucc ger.(next_id)) ger.(we))
       | Some _ => OK ger
@@ -160,13 +172,9 @@ Definition trans_ctrl (ct : ctrlT) (gel ger: generator) (ie : idenv) : res (node
   match ct with
   | CtrlT id varbk eqs =>
       do eqs' <- mmap (trans_eq gel ger) eqs;
-      let params := map (fun it => trans_info (snd it)) ger.(me) in
-      let returns := map (fun it => trans_info (snd it)) gel.(me) in
-      (* 
-        the two megaenv is merged directly 
-        the collision check is done in Lustre compiler
-      *)
-      let ex := mkext gel.(we) (gel.(me) ++ ger.(me)) ie in
+      let params := map (fun it => trans_info (snd it)) ger.(me) in (* rhs (or events) will be parameters *)
+      let returns := map (fun it => trans_info (snd it)) gel.(me) in (* and lhs will become the return values *)
+      let ex := mkext gel.(we) ger.(me) gel.(me) ie in
       OK (NodeT true id params returns varbk eqs', ex)
   end.
 
