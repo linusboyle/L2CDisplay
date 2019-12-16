@@ -1,6 +1,6 @@
 FLOCQDIR=compcert/flocq
 
-DIRS=compcert compcert/lib compcert/common compcert/ia32 display src driver frontend util \
+DIRS=compcert compcert/lib compcert/common compcert/ia32 display src driver frontend \
 	 $(FLOCQDIR)/Core $(FLOCQDIR)/Prop $(FLOCQDIR)/Calc $(FLOCQDIR)/Appli
 
 INCLUDES=$(patsubst %,-I %, $(DIRS))
