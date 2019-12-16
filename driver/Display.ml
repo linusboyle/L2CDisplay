@@ -102,7 +102,6 @@ let translate fn=
 
   if !flag_print_parse then print_string (PrintDisplay.lus_output ast) else ();
 
-  print_endline !display_file;
   let markup = 
       match ParseXml.parse_from_file (!display_file) with
       | None -> exit 2
