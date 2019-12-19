@@ -16,8 +16,8 @@ with instanceTree : Type :=
   | INil : instanceTree
   | ICons : markUp -> instanceTree -> instanceTree.
 
-Definition idenv := PTree.t ident.
-Definition empty_idenv := PTree.empty ident.
+Definition idenv := PTree.t widgetInstance.
+Definition empty_idenv := PTree.empty widgetInstance.
 
 Fixpoint generate_idenv (m : markUp) (ie : idenv) : idenv :=
   match m with
@@ -25,7 +25,7 @@ Fixpoint generate_idenv (m : markUp) (ie : idenv) : idenv :=
     match wgt_id wgt with
     | None => generate_idenvs subl ie
     | Some id =>
-        let ie0 := PTree.set id wgt.(wgt_name) ie in
+        let ie0 := PTree.set id wgt ie in
         generate_idenvs subl ie0
     end
   end
@@ -36,26 +36,6 @@ with generate_idenvs (it : instanceTree) (ie : idenv) : idenv :=
       let ie0 := generate_idenv m ie in
       generate_idenvs subl ie0
   end.
-
-(* distribute unique widget number *)
-Fixpoint generate_num (ne : positive) (m0 : markUp) : positive * markUp :=
-  match m0 with
-  | GraphicsHierarchy wgt subl =>
-      let (ne', subl') := generate_nums ne subl in
-      let wgt' := mkinstance wgt.(wgt_name) wgt.(wgt_id) ne' wgt.(wgt_statics) in
-      (Pos.succ ne', GraphicsHierarchy wgt' subl')
-  end
-with generate_nums (ne : positive) (il : instanceTree) : positive * instanceTree :=
-  match il with
-  | INil => (ne, INil)
-  | ICons h t =>
-      let (ne0, h') := generate_num ne h in
-      let (ne1, t') := generate_nums ne0 t in
-      (ne1, ICons h' t')
-  end.
-
-Definition trans_markup (m: markUp) :=
-  snd (generate_num xH m).
 
 Set Implicit Arguments.
 
@@ -97,9 +77,10 @@ End META.
 Definition meta_infoW := general_info typeL Lustre.clock.
 Definition megaenvW : Type := general_megaenv meta_infoW.
 
+(* the info produced by main translation process *)
 Record extinfoW : Type := mkext {
-  wgt_itfW : widgetenv;
-  ctrl_paramW : megaenvW; (* this is the mapping from widget id and widget event name to metainfo, it stands for control node input *)
+  wgt_itfW : wgtenvW; (* raw widget interfaces *)
+  ctrl_paramW : megaenvW; (* this is the mapping from widget id and widget event name to metainfoW, it stands for control node input *)
   ctrl_returnW : megaenvW; (* likewise, stands for widget params and control node output *)
-  wgt_idenvW : idenv (* map between widget id and widget name *)
+  ctrl_name : ident (* the ctrl node name *)
 }.

@@ -502,7 +502,7 @@ Definition trans_control (ge : env) (nds: list nodeBlk) : res (AST.ident * ctrlT
   | _ => Error (msg "only one control node is allowed")
   end.
 
-Definition trans_widget (gc : constenv) (gw : widgetenv) (nd : nodeBlk) : res widgetenv :=
+Definition trans_widget (gc : constenv) (gw : wgtenvW) (nd : nodeBlk) : res wgtenvW :=
     match nd with
     | WidgetBlk id (ParamBlk params) (ReturnBlk returns) =>
       do rets <- mmap (trans_var gc) returns;
@@ -512,7 +512,7 @@ Definition trans_widget (gc : constenv) (gw : widgetenv) (nd : nodeBlk) : res wi
     | _ => OK gw
     end.
 
-Fixpoint trans_widget_block (gc : constenv) (gw : widgetenv) (nds : list nodeBlk) : res widgetenv :=
+Fixpoint trans_widget_block (gc : constenv) (gw : wgtenvW) (nds : list nodeBlk) : res wgtenvW :=
   match nds with
   | nil => OK gw
   | h :: t =>
@@ -766,7 +766,7 @@ Definition trans_program(p: LDisplay.program) : res (AST.ident*programT) :=
     do gn <- register_nodehandlers blk gc empty_handlerenv;
     let ge := mkenv gv empty_varsenv gn gc in
     do nds <- trans_nodeblks ge blk;
-    do gw <- trans_widget_block gc empty_widgetenv blk;
+    do gw <- trans_widget_block gc empty_wgtenvW blk;
     do (cid, ctrl) <- trans_control ge blk;
     if check_ctrl_depend cid blk
     then Error (msg "normal node can not depend on control node")

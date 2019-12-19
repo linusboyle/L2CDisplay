@@ -117,14 +117,14 @@ Inductive ctrlT : Type :=
   | CtrlT : ident -> vars -> list ctrl_equationT -> ctrlT.
 
 (** * Program *)
-Definition widgetenv := PTree.t widgetT.
-Definition empty_widgetenv := PTree.empty widgetT.
+Definition wgtenvW := PTree.t widgetT.
+Definition empty_wgtenvW := PTree.empty widgetT.
 
 Record programT : Type := mkprogramT {
   type_blockT : list (ident*typeL);
   const_blockT : list (ident*typeL*constL);
   node_blockT : list nodeT;
   controlT : ctrlT;
-  widget_blockT : widgetenv;
+  widget_blockT : wgtenvW;
   node_mainT : ident
 }.

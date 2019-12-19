@@ -61,7 +61,7 @@ LUSTRE2C=Lident.v Ltypes.v Lop.v Lustre.v LustreV.v LustreW.v LustreS.v LustreR.
 
 DRIVER=Compiler.v
 
-DISPLAY=LDisplay.v MarkUp.v \
+DISPLAY=LDisplay.v MarkUp.v Csim.v ControlGen.v ClightGenDis.v\
 		DisplayW.v DisplayWGen.v LustreWGenDis.v TransType.v
 
 FILES=$(LIB) $(COMMON) $(ARCH) $(LUSTRE2C) $(DRIVER) $(FLOCQ) $(DISPLAY)

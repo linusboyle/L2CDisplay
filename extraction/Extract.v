@@ -8,6 +8,8 @@ Require Compiler.
 Require Errors.
 Require DisplayWGen.
 Require LustreWGenDis.
+Require ControlGen.
+Require ClightGenDis.
 
 Require Import ExtrOcamlBasic.
 Require Import ExtrOcamlString.
@@ -66,4 +68,5 @@ Extract Constant DisplayWGen.real_of_str =>
 Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program
   LustreVGen.trans_program LustreWGenDis.trans_program 
-  TransType.trans_program DisplayWGen.trans_program.
+  TransType.trans_program DisplayWGen.trans_program
+  ControlGen.trans_control ClightGenDis.trans_program.

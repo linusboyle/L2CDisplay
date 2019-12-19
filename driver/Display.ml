@@ -95,6 +95,10 @@ let parse_ldisplay content =
       exit (-2)
 ;;
 
+let merge_clight p1 p2 =
+    { prog_defs = (List.append (AST.prog_defs p1) (AST.prog_defs p2)); prog_main = (AST.prog_main p1) }
+;;
+
 let translate fn=
   let mfn = fn in
   let lustre_content = read_whole_file fn in
@@ -128,6 +132,15 @@ let translate fn=
     | Errors.Error msg ->
         print_error stderr msg;
 	exit 2 in
+
+  let ctrlsim =
+    match ControlGen.trans_control markup extinfo with
+    | Errors.OK p -> p
+    | Errors.Error msg ->
+        print_error stderr msg;
+    exit 2 in
+
+  let ctrlight = ClightGenDis.trans_program ctrlsim in
 
   let astV =
     match LustreVGen.trans_program astw with
@@ -168,9 +181,11 @@ let translate fn=
     | Errors.Error msg ->
         print_error stderr msg;
         exit 2 in
+
+  let clight = merge_clight astC ctrlight in
   (* Print Clight *)
   if !flag_ctemp then ()
-  else output_c_file astC path
+  else output_c_file clight path
   ;;
 
 let parse_command () =
