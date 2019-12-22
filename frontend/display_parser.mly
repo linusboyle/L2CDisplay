@@ -441,6 +441,17 @@ norExprY:
 	|	NOR LPAREN exprsY RPAREN	{NorExpr(ExprList(cons_exprlist $3))}
 ;
 
+mergeExprY:
+		MERGE IDENT atomExprY LPAREN exprY RPAREN
+			{MergeExpr({ name = $2; key = intern_string $2 }, (AtomExpr $3), $5)}
+	|	MERGE IDENT LPAREN exprY RPAREN atomExprY
+			{MergeExpr({ name = $2; key = intern_string $2 }, $4, (AtomExpr $6))}
+	|	MERGE IDENT atomExprY atomExprY
+			{MergeExpr({ name = $2; key = intern_string $2 }, (AtomExpr $3), (AtomExpr $4))}
+	|	MERGE IDENT LPAREN exprY RPAREN LPAREN exprY RPAREN
+			{MergeExpr({ name = $2; key = intern_string $2 }, $4, $7)}
+;
+
 exprY:
 		atomExprY			{AtomExpr $1}
 	|	unOpY exprY	%prec	UNOPEXP	{UnOpExpr($1, $2)}
@@ -450,6 +461,7 @@ exprY:
 	|	arrInitExprY			{$1}
 	|	arrConstructExprY		{$1}
 	|	arrNameConstructExprY		{$1}
+	|	mergeExprY			{$1}
 	|	PRE exprY	%prec	PREEXP	{PreExpr $2}
 	|	CURRENT exprY			{CurrentExpr $2}
 	|	fbyExprY			{$1}

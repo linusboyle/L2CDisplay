@@ -71,7 +71,8 @@ Inductive exprT : Type :=
   | EfbyT : expr_listT -> int -> expr_listT -> exprT  (**r fby : fby(b; n; a) = a -> pre fby(b; n-1; a) *) 
   | EarrowT : exprT -> exprT -> exprT                                         (**r -> : fix the inital value of flows*)
   | EwhenT : exprT -> clock -> exprT                                          (**r x when h: if h=false, then no value; otherwise x *)
-  | EcurrentT: exprT ->  exprT   
+  | EcurrentT: exprT -> exprT   
+  | EmergeT: ident -> exprT -> exprT -> exprT
   | EifT : exprT -> exprT -> exprT -> exprT                                   (**r conditional*)
   | EdieseT: exprT -> exprT  (**r #(a1, ..., an) -> boolred(0,1,n)[a1, ..., an] *)
   | EnorT: exprT ->  exprT  (**r nor(a1, ..., an) boolred(0,0,n)[a1, ..., an] *)

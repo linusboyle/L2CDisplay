@@ -95,6 +95,7 @@ let rec lus_exprOut = function
   | Call (id, el) -> Printf.sprintf "%s(%s)" (id.name) (lus_listExprOut el)
   | DieseExpr e -> Printf.sprintf "#(%s)" (lus_exprOut e)
   | NorExpr e -> Printf.sprintf "nor(%s)" (lus_exprOut e)
+  | MergeExpr (id, e1, e2) -> Printf.sprintf "merge(%s, %s, %s)" id.name (lus_exprOut e1) (lus_exprOut e2)
 
 and lus_nameConstructExprOut = function
   | NamesNil -> ""

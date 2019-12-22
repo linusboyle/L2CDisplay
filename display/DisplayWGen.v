@@ -327,6 +327,10 @@ Fixpoint trans_expr(ge: env)(exp: LDisplay.expr): res exprT :=
   | NorExpr e =>
     do e' <- trans_expr ge e; 
     OK (EnorT e')
+  | MergeExpr id e1 e2 =>
+    do e1' <- trans_expr ge e1;
+    do e2' <- trans_expr ge e2;
+    OK (EmergeT (key id) e1' e2')
   end
 
 with trans_exprlist(ge: env)(el: exprlist) : res expr_listT :=
@@ -606,6 +610,7 @@ Fixpoint callidof(exp: LDisplay.expr): list AST.ident :=
   | Call id el => key id :: callidof_list el
   | DieseExpr e => callidof e
   | NorExpr e => callidof e
+  | MergeExpr _ e1 e2 => callidof e1 ++ callidof e2
   end
 
 with callidof_list(el: exprlist) : list AST.ident :=

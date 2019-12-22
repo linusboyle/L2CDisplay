@@ -91,6 +91,7 @@ Inductive expr : Type :=
   | Call : ident -> exprlist -> expr
   | DieseExpr : expr -> expr
   | NorExpr : expr -> expr
+  | MergeExpr : ident -> expr -> expr -> expr
 
 with exprlist : Type :=
   | Enil : exprlist

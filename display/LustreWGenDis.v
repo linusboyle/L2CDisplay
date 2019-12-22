@@ -276,6 +276,11 @@ Fixpoint trans_expr (exp : exprT) : LustreW.exprT :=
       LustreW.EdieseT (trans_expr exp')
   | EnorT exp' =>
       LustreW.EnorT (trans_expr exp')
+  | EmergeT id exp1 exp2 =>
+      let exp1' := trans_expr exp1 in
+      let exp2' := trans_expr exp2 in
+      let pat := PatternConT (Pabool true) exp1' (PatternConT (Pabool false) exp2' PatternNilT) in
+      LustreW.EmergeT id pat
   end
 with trans_exprlist (expl : expr_listT) : LustreW.expr_listT :=
   match expl with
