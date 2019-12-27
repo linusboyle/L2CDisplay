@@ -10,8 +10,12 @@ Require Import Lident.
 Require Import Lustre.
 Require Import Errors.
 Require Import Integers.
+Require Import Floats.
 Require LustreVGen.
 Require LustreWGenDis.
+
+Parameter int_of_str : String.string -> int.
+Parameter real_of_str : String.string -> float.
 
 (* distribute unique instance number *)
 Fixpoint generate_num_impl (ne : positive) (m0 : markUp) : positive * markUp :=
@@ -236,6 +240,9 @@ End API.
 
 Section CREATE_FUN.
 
+  Definition constenv := PTree.t (globvar type).
+  Definition empty_constenv := PTree.empty (globvar type). 
+
 (* the generation of create_gui function 
    this pass does not need meta info
 
@@ -270,15 +277,64 @@ Definition function_expr_of (def : ident * fundef) : expr :=
   let fty := type_of_fundef df in
   Evar id fty.
 
+(*Definition const_cast (raw : ident) (ty : type) : res (globvar type) :=*)
+  (*let str := Lident.extern_string raw in*)
+  (*match ty with*)
+  (*| Tint _ _ =>  *)
+      (*[> only int32 is supported! <]*)
+      (*let intval := DisplayWGen.int_of_str str in*)
+      (*let data := (Init_int32 intval) :: nil in*)
+      (*mkglobvar ty data true false *)
+
+Definition get_widget_itf (wn : ident) (we : wgtenv) : res widget_info :=
+  match we ! wn with
+  | None => Error (msg "get_widget_itf: not found")
+  | Some w => OK w
+  end.
+
+Definition generate_const_expr (val : ident) (ty : type) : res expr :=
+  let str := Lident.extern_atom val in
+  match ty with
+  | Tint _ _ =>
+      let intval := int_of_str str in
+      OK (Econst_int intval ty)
+  | Tfloat _ =>
+      let realval := real_of_str str in
+      OK (Econst_float realval ty)
+  | _ =>
+      Error (msg "ControlGen.generate_const_expr: unsupported static type")
+  end.
+
+Fixpoint generate_static_stmt (statics: list (ident * ident)) (wn : ident) (wnum : positive) (we : wgtenv) (ex : extenv) : res (statement * extenv) :=
+  match statics with
+  | nil => OK (Sskip, ex)
+  | (name, val) :: ts =>
+      do info <- get_widget_itf wn we;
+      let se := info.(statics_info) in
+      match se ! name with
+      | None => Error (MSG "ControlGen.generate_static_stmt: static field not found: " :: CTX name :: nil)
+      | Some ty => 
+          do exp <- generate_const_expr val ty;
+          let (fname, fdef) := api_update wn name (ty, nil) in
+          let func := function_expr_of (fname, fdef) in
+          let ex1 := PTree.set fname fdef ex in
+          let stmt := Scall None func ((positive_to_expr wnum) :: exp :: nil) in
+          do (stmt', ex2) <- generate_static_stmt ts wn wnum we ex1;
+          OK (Ssequence stmt stmt', ex2)
+      end
+  end.
+
 Fixpoint generate_create_stmt (m : markUp) (we : wgtenv) (ex : extenv) : res (statement * extenv) :=
   match m with
   | GraphicsHierarchy wgt subl =>
       do (sub_stmts, ex0) <- generate_create_stmts subl we ex;
       do (fid, fdef) <- api_create_widget wgt.(wgt_name) we;
-      let func := function_expr_of (fid, fdef) in
       (* set without checking, as the widget prototype should be the same after the wgtinfo pass *)
       let ex1 := PTree.set fid fdef ex0 in
-      OK (Ssequence sub_stmts (Scall None func (exprlist_of_markup m)), ex1)
+      let func := function_expr_of (fid, fdef) in
+      let create_stmt := Scall None func (exprlist_of_markup m) in
+      do (static_stmt, ex2) <- generate_static_stmt wgt.(wgt_statics) wgt.(wgt_name) wgt.(wgt_num) we ex1;
+      OK (Ssequence (Ssequence sub_stmts create_stmt) static_stmt, ex2)
   end
 with generate_create_stmts (subl : instanceTree) (we : wgtenv) (ex : extenv) : res (statement * extenv) :=
   match subl with
@@ -412,7 +468,7 @@ End MAIN_FUN.
 Definition trans_control (m0 : markUp) (extinfo : extinfoW) : res program :=
   (* give every instance a unique id *)
   let m := generate_num m0 in
-  (* generate id enviroment*)
+  (* generate id environment*)
   let ie := generate_idenv m empty_idenv in
   (* generate new widget environment *)
   do we0 <- trans_widgetenv extinfo.(wgt_itfW);

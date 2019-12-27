@@ -65,6 +65,11 @@ Extract Constant DisplayWGen.int_of_str =>
 Extract Constant DisplayWGen.real_of_str => 
   "fun s -> Camlcoq.coqfloat_of_camlfloat(float_of_string s)".
 
+Extract Constant ControlGen.int_of_str => 
+  "fun s -> Camlcoq.coqint_of_camlint(Int32.of_string (Camlcoq.camlstring_of_coqstring s))".
+Extract Constant ControlGen.real_of_str => 
+  "fun s -> Camlcoq.coqfloat_of_camlfloat(float_of_string (Camlcoq.camlstring_of_coqstring s))".
+
 Separate Extraction
   Compiler.transf_lt_program LustreSGen.trans_program
   LustreVGen.trans_program LustreWGenDis.trans_program 
