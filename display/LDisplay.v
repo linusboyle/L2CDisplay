@@ -118,6 +118,9 @@ Inductive varBlk : Type :=
 Inductive paramBlk : Type :=
   | ParamBlk : list (ident * kind * singleclock) -> paramBlk.
 
+Inductive staticBlk : Type :=
+  | StaticBlk : list (ident * kind) -> staticBlk.
+
 Inductive returnBlk : Type :=
   | ReturnBlk : list (ident * kind * singleclock) -> returnBlk.
 
@@ -134,7 +137,7 @@ Inductive nodeBlk : Type :=
   | TypeBlk : list typeStmt -> nodeBlk
   | ConstBlk : list constStmt -> nodeBlk
   | FuncBlk : funcType -> ident -> paramBlk -> returnBlk -> bodyBlk -> nodeBlk
-  | WidgetBlk : ident -> paramBlk -> returnBlk -> nodeBlk
+  | WidgetBlk : ident -> staticBlk -> paramBlk -> returnBlk -> nodeBlk
   | ControlBlk : ident -> bodyBlk -> nodeBlk.
 
 Inductive program : Type :=

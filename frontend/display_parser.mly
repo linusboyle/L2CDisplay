@@ -151,8 +151,27 @@ funcBlkY:
 ;
 
 widgetBlkY:
-    WIDGET IDENT paramBlkY returnBlkY
-        {WidgetBlk({ name = $2; key = intern_string $2}, $3, $4)}
+    WIDGET IDENT staticBlkY paramBlkY returnBlkY
+        {WidgetBlk({ name = $2; key = intern_string $2}, $3, $4, $5)}
+;
+
+staticBlkY:
+        LES staticsY GRE 
+        {$2}
+    |       
+        {[]}
+;
+
+staticsY:
+        staticY
+        {$1}
+    |   staticY SEMICOLON staticsY
+        {List.append $1 $3}
+;
+
+staticY:
+		identsY COLON kindY
+		{List.map (fun i -> (i, $3)) $1}
 ;
 
 ctrlBlkY:

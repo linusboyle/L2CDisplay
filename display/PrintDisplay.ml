@@ -125,6 +125,10 @@ let lus_eqsOut eqs =
       String.concat "\n" (List.map lus_eqOut eqs)
   ]
 
+let lus_staticOut depth field = match field with
+   (id, k) -> 
+      Printf.sprintf "%s: %s" (indent depth (lus_identOut id)) (kindOut k)
+
 let lus_fieldOut depth field = match field with
    ((id, k), ck) -> 
       Printf.sprintf "%s: %s %s" (indent depth (lus_identOut id)) (kindOut k) (clockOut ck)
@@ -175,10 +179,12 @@ let lus_nodeOut = function
          String.concat "\n" (List.map (lus_fieldOut 2) retl);
          lus_bodyOut body
      ]
-  | WidgetBlk (id, pl, retl) ->
+  | WidgetBlk (id, st, pl, retl) ->
     String.concat "\n" 
     [   indent 0 "Widget";
         indent 1 (lus_identOut id);
+        indent 1 "Params";
+        String.concat "\n" (List.map (lus_staticOut 2) st);
         indent 1 "Params";
         String.concat "\n" (List.map (lus_fieldOut 2) pl);
         indent 1 "Events";

@@ -412,6 +412,13 @@ Definition trans_eqstmt_ctrl(ge: env)(eq: eqStmt): res ctrl_equationT :=
     OK (CtrlEquationT lv el')
   end.
 
+Definition trans_static(gc: constenv)(static: ident*kind) : res (AST.ident*typeL) :=
+  match static with 
+  | (id, k) => 
+    do ty <- trans_kind gc k;
+    OK ((key id), ty)
+  end.
+
 Definition trans_var(gc: constenv)(var: ident*kind*singleclock) : res (AST.ident*typeL*clock) :=
   match var with 
   | (id, k, ck) => 
@@ -508,10 +515,11 @@ Definition trans_control (ge : env) (nds: list nodeBlk) : res (AST.ident * ctrlT
 
 Definition trans_widget (gc : constenv) (gw : wgtenvW) (nd : nodeBlk) : res wgtenvW :=
     match nd with
-    | WidgetBlk id (ParamBlk params) (ReturnBlk returns) =>
+    | WidgetBlk id (StaticBlk statics) (ParamBlk params) (ReturnBlk returns) =>
+      do stats <- mmap (trans_static gc) statics;
       do rets <- mmap (trans_var gc) returns;
       do params <- mmap (trans_var gc) params;
-      let wgt := WidgetT (key id) params rets in
+      let wgt := WidgetT (key id) stats params rets in
       OK (PTree.set (key id) wgt gw)
     | _ => OK gw
     end.

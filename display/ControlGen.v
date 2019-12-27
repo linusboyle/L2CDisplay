@@ -40,10 +40,14 @@ Section WGTINFO.
 Definition varsenv : Type := PTree.t (type * clock).
 Definition empty_varsenv := PTree.empty (type * clock).
 
+Definition staticenv : Type := PTree.t type.
+Definition empty_staticenv := PTree.empty type.
+
 Record widget_info : Type := mkwinfo {
   subwgt_len : option nat;
   params_info : varsenv;
-  events_info : varsenv
+  events_info : varsenv;
+  statics_info : staticenv
 }.
 
 Definition wgtenv : Type := PTree.t widget_info.
@@ -64,7 +68,21 @@ Fixpoint register_varsenv (ve : varsenv) (vars : list (ident * typeL * clock)) :
         let ty' := trans_type ty in
         let ve' := PTree.set id (ty', ck) ve in
         register_varsenv ve' tv
-      | Some _ => Error (MSG "duplicate names in the interface of widget " :: CTX id :: nil)
+      | Some _ => Error (MSG "duplicate names in widget interface: " :: CTX id :: nil)
+      end
+  end.
+
+Fixpoint register_staticenv (ve : staticenv) (statics : list (ident * typeL)) : res staticenv :=
+  match statics with
+  | nil => OK ve
+  | hv :: tv =>
+      let (id, ty) := hv in
+      match ve ! id with
+      | None =>
+        let ty' := trans_type ty in
+        let ve' := PTree.set id ty' ve in
+        register_staticenv ve' tv
+      | Some _ => Error (MSG "duplicate names in widget interface: " :: CTX id :: nil)
       end
   end.
 
@@ -76,10 +94,11 @@ Fixpoint register_widgetenv (we : wgtenv) (itfl : list (ident * widgetT)) : res 
   | hi :: ti =>
       let (id, itf) := hi in
       match itf with
-      | WidgetT _ params events => 
+      | WidgetT _ statics params events => 
+          do stats <- register_staticenv empty_staticenv statics;
           do pi <- register_varsenv empty_varsenv params;
           do ei <- register_varsenv empty_varsenv events;
-          let we' := PTree.set id (mkwinfo None pi ei) we in
+          let we' := PTree.set id (mkwinfo None pi ei stats) we in
           register_widgetenv we' ti
       end
   end.
@@ -104,7 +123,7 @@ Fixpoint count_widget (m : markUp) (we : wgtenv) : res wgtenv :=
       | Some wi => 
           match wi.(subwgt_len) with
           | None => 
-              let wi' := mkwinfo (Some len) wi.(params_info) wi.(events_info) in
+              let wi' := mkwinfo (Some len) wi.(params_info) wi.(events_info) wi.(statics_info) in
               let we' := PTree.set wn wi' we in
               count_widgets subl we'
           | Some len0 =>

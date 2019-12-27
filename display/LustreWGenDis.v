@@ -61,7 +61,7 @@ Definition get_mega_info_lhs (mg : ident * ident) (we : wgtenvW) : res (typeL * 
   let (kw, kf) := mg in
   match we ! kw with
   | None => Error (MSG "widget " :: CTX kw :: MSG " not found" :: nil)
-  | Some (WidgetT id params events) =>
+  | Some (WidgetT id statics params events) =>
       find_tyck kf params
   end.
 
@@ -69,7 +69,7 @@ Definition get_mega_info_rhs (mg : ident * ident) (we : wgtenvW) : res (typeL * 
   let (kw, kf) := mg in
   match we ! kw with
   | None => Error (MSG "widget " :: CTX kw :: MSG " not found" :: nil)
-  | Some (WidgetT id params events) =>
+  | Some (WidgetT id statics params events) =>
       find_tyck kf events
   end.
 

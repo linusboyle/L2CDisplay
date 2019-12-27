@@ -46,6 +46,13 @@ with trans_fieldlist(te: typenv)(f: fieldlist): res fieldlist :=
     OK (Fcons id k' ftl')
   end.
 
+Definition trans_static(te: typenv)(var: ident*kind) : res (ident*kind) :=
+  match var with 
+  | (id, k) => 
+    do k' <- trans_kind te k;
+    OK (id, k')
+  end.
+
 Definition trans_var(te: typenv)(var: ident*kind*singleclock) : res (ident*kind*singleclock) :=
   match var with 
   | (id, k, ck) => 
@@ -93,10 +100,11 @@ Definition trans_nodeblk(te: typenv)(nd: nodeBlk) : res (list nodeBlk) :=
     do rs' <- mmap (trans_var te) rs;
     do body' <- trans_bodyblk te body;
     OK (FuncBlk ft id (ParamBlk ps') (ReturnBlk rs') body' :: nil)
-  | WidgetBlk id (ParamBlk ps) (ReturnBlk rs) =>
+  | WidgetBlk id (StaticBlk st) (ParamBlk ps) (ReturnBlk rs) =>
+    do st' <- mmap (trans_static te) st;
     do ps' <- mmap (trans_var te) ps;
     do rs' <- mmap (trans_var te) rs;
-    OK (WidgetBlk id (ParamBlk ps') (ReturnBlk rs') :: nil)
+    OK (WidgetBlk id (StaticBlk st) (ParamBlk ps') (ReturnBlk rs') :: nil)
   | ControlBlk id body =>
     do body' <- trans_bodyblk te body;
     OK (ControlBlk id body' :: nil)

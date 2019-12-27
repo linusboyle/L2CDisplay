@@ -112,7 +112,7 @@ Inductive nodeT : Type :=
   | NodeT : bool -> ident -> vars -> vars -> vars -> list equationT -> nodeT.
 
 Inductive widgetT : Type :=
-  | WidgetT : ident -> vars -> vars -> widgetT.
+  | WidgetT : ident -> list(ident * typeL) -> vars -> vars -> widgetT.
 
 Inductive ctrlT : Type :=
   | CtrlT : ident -> vars -> list ctrl_equationT -> ctrlT.
